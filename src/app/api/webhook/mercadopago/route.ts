@@ -34,6 +34,24 @@ export async function POST(req: NextRequest) {
       })
       .eq('id', orderId)
 
+    // Descontar stock si el pago fue aprobado
+    if (paymentData.status === 'approved') {
+      const { data: order } = await supabase
+        .from('orders')
+        .select('items')
+        .eq('id', orderId)
+        .single()
+
+      if (order?.items) {
+        for (const item of order.items as { variant_id: string; quantity: number }[]) {
+          await supabase.rpc('decrement_stock', {
+            variant_id: item.variant_id,
+            qty: item.quantity,
+          })
+        }
+      }
+    }
+
     return NextResponse.json({ received: true })
   } catch (err) {
     console.error('Webhook error:', err)

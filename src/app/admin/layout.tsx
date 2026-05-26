@@ -1,5 +1,8 @@
+export const dynamic = 'force-dynamic'
+
 import Link from 'next/link'
 import { Package, ShoppingBag, LayoutDashboard } from 'lucide-react'
+import LogoutButton from '@/components/admin/LogoutButton'
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -26,10 +29,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </Link>
           ))}
         </nav>
-        <div className="p-4 border-t">
-          <Link href="/" className="text-xs text-gray-400 hover:text-gray-600 transition-colors">
+        <div className="p-4 border-t space-y-3">
+          <Link href="/" className="block text-xs text-gray-400 hover:text-gray-600 transition-colors">
             ← Ver tienda
           </Link>
+          <LogoutButton />
         </div>
       </aside>
 

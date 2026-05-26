@@ -74,6 +74,16 @@ create policy "Solo admin ve pedidos" on orders for all using (auth.role() = 'se
 -- Pedidos: cualquiera puede insertar (checkout)
 create policy "Clientes pueden crear pedidos" on orders for insert with check (true);
 
+-- Función para descontar stock de forma segura (evita stock negativo)
+create or replace function decrement_stock(variant_id uuid, qty integer)
+returns void language plpgsql as $$
+begin
+  update product_variants
+  set stock = greatest(0, stock - qty)
+  where id = variant_id;
+end;
+$$;
+
 -- Datos de ejemplo: categorías
 insert into categories (name, slug, "order") values
   ('Remeras & Tops', 'remeras-tops', 1),
