@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { ShoppingBag, Menu, X, Search } from 'lucide-react'
 import { useState } from 'react'
 import { useCartStore } from '@/store/cart'
+import SearchModal from './SearchModal'
 
 const categories = [
   { name: 'Remeras & Tops', slug: 'remeras-tops' },
@@ -18,10 +19,12 @@ const categories = [
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
   const { itemCount, toggleCart } = useCartStore()
   const count = itemCount()
 
   return (
+    <>
     <header className="sticky top-0 z-50 bg-white border-b border-gray-100">
       {/* Barra de envíos */}
       <div className="bg-black text-white text-center text-xs py-2 tracking-widest">
@@ -51,7 +54,11 @@ export default function Navbar() {
 
         {/* Iconos derecha */}
         <div className="flex items-center gap-4">
-          <button className="hidden sm:block hover:opacity-60 transition-opacity">
+          <button
+            onClick={() => setSearchOpen(true)}
+            className="hidden sm:block hover:opacity-60 transition-opacity"
+            aria-label="Buscar"
+          >
             <Search size={20} />
           </button>
 
@@ -97,5 +104,8 @@ export default function Navbar() {
         </div>
       )}
     </header>
+
+    <SearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
+    </>
   )
 }
