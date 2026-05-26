@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { Product, ProductVariant } from '@/types'
 import { useCartStore } from '@/store/cart'
 import { ShoppingBag, Check } from 'lucide-react'
+import SizeGuideModal from './SizeGuideModal'
 
 type Props = {
   product: Product
@@ -14,6 +15,7 @@ export default function ProductDetail({ product }: Props) {
   const [selectedImage, setSelectedImage] = useState(0)
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null)
   const [added, setAdded] = useState(false)
+  const [sizeGuideOpen, setSizeGuideOpen] = useState(false)
   const { addItem, toggleCart } = useCartStore()
 
   const sizes = [...new Set(product.variants?.map((v) => v.size) ?? [])]
@@ -51,6 +53,7 @@ export default function ProductDetail({ product }: Props) {
   }
 
   return (
+    <>
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
         {/* Galería */}
@@ -127,7 +130,10 @@ export default function ProductDetail({ product }: Props) {
                   </span>
                 )}
               </p>
-              <button className="text-xs text-gray-500 underline underline-offset-4">
+              <button
+                onClick={() => setSizeGuideOpen(true)}
+                className="text-xs text-gray-500 underline underline-offset-4 hover:text-black transition-colors"
+              >
                 Guía de talles
               </button>
             </div>
@@ -205,5 +211,8 @@ export default function ProductDetail({ product }: Props) {
         </div>
       </div>
     </div>
+
+    <SizeGuideModal isOpen={sizeGuideOpen} onClose={() => setSizeGuideOpen(false)} />
+    </>
   )
 }
