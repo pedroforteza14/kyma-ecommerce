@@ -12,6 +12,10 @@ export default function ProductCard({ product }: Props) {
     ? Math.round((1 - product.price / product.original_price!) * 100)
     : null
 
+  const totalStock = product.variants?.reduce((acc, v) => acc + v.stock, 0) ?? 0
+  const isLowStock = totalStock > 0 && totalStock <= 5
+  const isOutOfStock = totalStock === 0
+
   const formatPrice = (price: number) =>
     new Intl.NumberFormat('es-AR', {
       style: 'currency',
@@ -47,6 +51,22 @@ export default function ProductCard({ product }: Props) {
         {product.is_featured && !discountPct && (
           <span className="absolute top-2 left-2 bg-black text-white text-xs px-2 py-1 font-medium">
             NEW
+          </span>
+        )}
+
+        {/* Badge sin stock */}
+        {isOutOfStock && (
+          <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
+            <span className="bg-white text-gray-500 text-xs px-3 py-1.5 font-medium border">
+              Sin stock
+            </span>
+          </div>
+        )}
+
+        {/* Badge últimas unidades */}
+        {isLowStock && (
+          <span className="absolute bottom-2 left-2 bg-orange-500 text-white text-xs px-2 py-1 font-medium">
+            ¡Últimas unidades!
           </span>
         )}
       </div>

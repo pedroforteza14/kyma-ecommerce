@@ -1,10 +1,29 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
+import { Metadata } from 'next'
 import { Product } from '@/types'
 import ProductCard from '@/components/store/ProductCard'
 
 type Props = {
   params: Promise<{ slug: string }>
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params
+  const supabase = await createClient()
+
+  const { data: category } = await supabase
+    .from('categories')
+    .select('name')
+    .eq('slug', slug)
+    .single()
+
+  if (!category) return { title: 'Categoría | KYMA' }
+
+  return {
+    title: `${category.name} | KYMA`,
+    description: `Explorá nuestra colección de ${category.name}. Moda femenina con estilo.`,
+  }
 }
 
 export default async function CategoryPage({ params }: Props) {

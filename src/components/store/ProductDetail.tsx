@@ -136,6 +136,7 @@ export default function ProductDetail({ product }: Props) {
               {sizes.map((size) => {
                 const variant = product.variants?.find((v) => v.size === size)
                 const outOfStock = variant ? variant.stock === 0 : true
+                const isLow = variant ? variant.stock > 0 && variant.stock <= 3 : false
                 const isSelected = selectedVariant?.size === size
 
                 return (
@@ -143,7 +144,7 @@ export default function ProductDetail({ product }: Props) {
                     key={size}
                     disabled={outOfStock}
                     onClick={() => setSelectedVariant(variant ?? null)}
-                    className={`min-w-[48px] px-3 py-2 text-sm border transition-all ${
+                    className={`relative min-w-[48px] px-3 py-2 text-sm border transition-all ${
                       isSelected
                         ? 'bg-black text-white border-black'
                         : outOfStock
@@ -152,10 +153,20 @@ export default function ProductDetail({ product }: Props) {
                     }`}
                   >
                     {size}
+                    {isLow && !outOfStock && (
+                      <span className="absolute -top-1.5 -right-1.5 w-2.5 h-2.5 bg-orange-400 rounded-full" />
+                    )}
                   </button>
                 )
               })}
             </div>
+
+            {/* Alerta de stock bajo en el talle seleccionado */}
+            {selectedVariant && selectedVariant.stock > 0 && selectedVariant.stock <= 3 && (
+              <p className="text-xs text-orange-500 font-medium mt-2">
+                ⚡ ¡Solo quedan {selectedVariant.stock} unidades en talle {selectedVariant.size}!
+              </p>
+            )}
           </div>
 
           {/* Botón agregar */}

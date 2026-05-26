@@ -1,6 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import ProductForm from '@/components/admin/ProductForm'
+import StockEditor from '@/components/admin/StockEditor'
 import { deleteProduct } from '@/lib/actions/products'
 import { Product, Category } from '@/types'
 import { Trash2 } from 'lucide-react'
@@ -64,6 +65,10 @@ export default async function EditProductPage({ params }: Props) {
         product={product as Product}
         categories={(categories as Category[]) ?? []}
       />
+
+      {product.variants && product.variants.length > 0 && (
+        <StockEditor variants={product.variants} productId={id} />
+      )}
     </div>
   )
 }
