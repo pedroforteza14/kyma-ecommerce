@@ -14,6 +14,11 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "*.mitiendanube.com",
       },
+      {
+        // Unsplash (seed de prueba)
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
     ],
   },
 };

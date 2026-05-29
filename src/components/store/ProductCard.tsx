@@ -24,64 +24,87 @@ export default function ProductCard({ product }: Props) {
     }).format(price)
 
   return (
-    <Link href={`/producto/${product.slug}`} className="group">
-      {/* Imagen */}
-      <div className="relative aspect-[3/4] bg-gray-100 overflow-hidden rounded-sm">
+    <Link href={`/producto/${product.slug}`} className="group block">
+      {/* ── Imagen ── */}
+      <div className="relative aspect-[3/4] bg-[#f5f4f0] overflow-hidden">
+
+        {/* Imagen principal */}
         {product.images?.[0] ? (
           <Image
             src={product.images[0]}
             alt={product.name}
             fill
-            className="object-cover group-hover:scale-105 transition-transform duration-500"
+            className={`object-cover transition-all duration-700 ease-in-out ${
+              product.images[1] ? 'group-hover:opacity-0' : 'group-hover:scale-105'
+            }`}
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-gray-300 text-sm">
-            Sin imagen
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="font-display text-4xl text-gray-200 italic font-light">K</span>
           </div>
         )}
 
-        {/* Badge descuento */}
-        {discountPct && (
-          <span className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 font-medium">
-            -{discountPct}%
-          </span>
+        {/* Segunda imagen (hover swap) */}
+        {product.images?.[1] && (
+          <Image
+            src={product.images[1]}
+            alt={`${product.name} — vista 2`}
+            fill
+            className="object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-700 ease-in-out"
+          />
         )}
 
-        {/* Badge nuevo/destacado */}
-        {product.is_featured && !discountPct && (
-          <span className="absolute top-2 left-2 bg-black text-white text-xs px-2 py-1 font-medium">
-            NEW
-          </span>
-        )}
+        {/* Badges */}
+        <div className="absolute top-3 left-3 flex flex-col gap-1.5">
+          {discountPct && (
+            <span className="bg-[#111] text-white text-[10px] tracking-widest px-2 py-1">
+              -{discountPct}%
+            </span>
+          )}
+          {product.is_featured && !discountPct && (
+            <span className="bg-white text-[#111] text-[10px] tracking-widest px-2 py-1 border border-[#111]/10">
+              NEW
+            </span>
+          )}
+        </div>
 
-        {/* Badge sin stock */}
+        {/* Sin stock overlay */}
         {isOutOfStock && (
-          <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
-            <span className="bg-white text-gray-500 text-xs px-3 py-1.5 font-medium border">
+          <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
+            <span className="text-[10px] tracking-[0.2em] uppercase text-gray-400 bg-white px-4 py-2 border border-gray-200">
               Sin stock
             </span>
           </div>
         )}
 
-        {/* Badge últimas unidades */}
+        {/* Últimas unidades */}
         {isLowStock && (
-          <span className="absolute bottom-2 left-2 bg-orange-500 text-white text-xs px-2 py-1 font-medium">
-            ¡Últimas unidades!
-          </span>
+          <div className="absolute bottom-0 left-0 right-0 bg-[#111]/80 py-2 text-center">
+            <span className="text-[9px] text-white tracking-[0.2em] uppercase">
+              Últimas unidades
+            </span>
+          </div>
+        )}
+
+        {/* Quick view strip — aparece al hacer hover */}
+        {!isOutOfStock && (
+          <div className="absolute bottom-0 left-0 right-0 bg-white py-3 text-center translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out">
+            <span className="text-[10px] tracking-[0.2em] uppercase font-medium">
+              Ver producto
+            </span>
+          </div>
         )}
       </div>
 
-      {/* Info */}
-      <div className="mt-3 space-y-1">
-        <p className="text-sm font-medium leading-tight line-clamp-2">
+      {/* ── Info ── */}
+      <div className="mt-3 space-y-1 px-0.5">
+        <p className="text-[13px] font-medium leading-snug line-clamp-1 group-hover:opacity-60 transition-opacity">
           {product.name}
         </p>
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold">
-            {formatPrice(product.price)}
-          </span>
+          <span className="text-[13px]">{formatPrice(product.price)}</span>
           {hasDiscount && (
-            <span className="text-xs text-gray-400 line-through">
+            <span className="text-[11px] text-gray-400 line-through">
               {formatPrice(product.original_price!)}
             </span>
           )}

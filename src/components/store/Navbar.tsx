@@ -1,8 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { ShoppingBag, Menu, X, Search } from 'lucide-react'
-import { useState } from 'react'
+import { ShoppingBag, Search, X, Menu } from 'lucide-react'
+import { useState, useEffect } from 'react'
 import { useCartStore } from '@/store/cart'
 import SearchModal from './SearchModal'
 
@@ -20,92 +20,148 @@ const categories = [
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
   const { itemCount, toggleCart } = useCartStore()
   const count = itemCount()
 
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 60)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  // Bloquear scroll cuando el menú mobile está abierto
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [menuOpen])
+
   return (
     <>
-    <header className="sticky top-0 z-50 bg-white border-b border-gray-100">
-      {/* Barra de envíos */}
-      <div className="bg-black text-white text-center text-xs py-2 tracking-widest">
-        ENVÍOS A TODO EL PAÍS
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
-        {/* Logo */}
-        <Link href="/" className="text-2xl font-bold tracking-widest uppercase">
-          KYMA
-        </Link>
-
-        {/* Nav desktop */}
-        <nav className="hidden lg:flex items-center gap-6">
-          {categories.map((cat) => (
-            <Link
-              key={cat.slug}
-              href={`/categoria/${cat.slug}`}
-              className={`text-sm tracking-wide hover:opacity-60 transition-opacity ${
-                cat.slug === 'sale' ? 'text-red-500 font-semibold' : ''
-              }`}
-            >
-              {cat.name}
-            </Link>
-          ))}
-        </nav>
-
-        {/* Iconos derecha */}
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => setSearchOpen(true)}
-            className="hidden sm:block hover:opacity-60 transition-opacity"
-            aria-label="Buscar"
-          >
-            <Search size={20} />
-          </button>
-
-          <button
-            onClick={toggleCart}
-            className="relative hover:opacity-60 transition-opacity"
-          >
-            <ShoppingBag size={20} />
-            {count > 0 && (
-              <span className="absolute -top-2 -right-2 bg-black text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                {count}
-              </span>
-            )}
-          </button>
-
-          {/* Menú mobile */}
-          <button
-            className="lg:hidden hover:opacity-60 transition-opacity"
-            onClick={() => setMenuOpen(!menuOpen)}
-          >
-            {menuOpen ? <X size={22} /> : <Menu size={22} />}
-          </button>
+      {/* ── Announcement bar ── */}
+      <div className="bg-[#111] text-white overflow-hidden h-8 flex items-center">
+        <div className="flex animate-marquee whitespace-nowrap text-[10px] tracking-[0.3em] uppercase">
+          {['Envíos a todo el país', 'Devoluciones sin cargo', 'Nueva colección disponible', 'Pagá en cuotas sin interés'].flatMap((t, i) => [
+            <span key={`t${i}`} className="px-10">{t}</span>,
+            <span key={`d${i}`} className="opacity-40">·</span>,
+          ]).concat(
+            ['Envíos a todo el país', 'Devoluciones sin cargo', 'Nueva colección disponible', 'Pagá en cuotas sin interés'].flatMap((t, i) => [
+              <span key={`t2${i}`} className="px-10">{t}</span>,
+              <span key={`d2${i}`} className="opacity-40">·</span>,
+            ])
+          )}
         </div>
       </div>
 
-      {/* Menú mobile expandido */}
-      {menuOpen && (
-        <div className="lg:hidden border-t border-gray-100 bg-white">
-          <nav className="flex flex-col px-4 py-4 gap-4">
+      {/* ── Main header ── */}
+      <header className={`sticky top-0 z-50 bg-white transition-shadow duration-300 ${scrolled ? 'shadow-[0_1px_0_0_#e5e5e5]' : 'border-b border-transparent'}`}>
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 flex items-center justify-between h-14">
+
+          {/* Logo */}
+          <Link
+            href="/"
+            className="font-display text-2xl font-light tracking-[0.4em] uppercase hover:opacity-70 transition-opacity"
+          >
+            KYMA
+          </Link>
+
+          {/* Nav desktop */}
+          <nav className="hidden lg:flex items-center gap-7">
             {categories.map((cat) => (
               <Link
                 key={cat.slug}
                 href={`/categoria/${cat.slug}`}
-                onClick={() => setMenuOpen(false)}
-                className={`text-sm tracking-wide hover:opacity-60 transition-opacity ${
-                  cat.slug === 'sale' ? 'text-red-500 font-semibold' : ''
+                className={`text-[11px] tracking-[0.12em] uppercase link-underline transition-opacity hover:opacity-60 ${
+                  cat.slug === 'sale' ? 'text-red-500 font-medium' : ''
                 }`}
               >
                 {cat.name}
               </Link>
             ))}
           </nav>
+
+          {/* Iconos */}
+          <div className="flex items-center gap-5">
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="hidden sm:flex hover:opacity-50 transition-opacity"
+              aria-label="Buscar"
+            >
+              <Search size={18} strokeWidth={1.5} />
+            </button>
+
+            <button
+              onClick={toggleCart}
+              className="relative hover:opacity-50 transition-opacity"
+              aria-label="Carrito"
+            >
+              <ShoppingBag size={18} strokeWidth={1.5} />
+              {count > 0 && (
+                <span className="absolute -top-2 -right-2 bg-[#111] text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-medium">
+                  {count}
+                </span>
+              )}
+            </button>
+
+            <button
+              className="lg:hidden hover:opacity-50 transition-opacity"
+              onClick={() => setMenuOpen(true)}
+              aria-label="Menú"
+            >
+              <Menu size={20} strokeWidth={1.5} />
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* ── Mobile menu overlay ── */}
+      {menuOpen && (
+        <div className="fixed inset-0 z-[60] bg-white animate-slide-down flex flex-col">
+          {/* Header del menú */}
+          <div className="flex items-center justify-between px-5 h-14 border-b border-gray-100">
+            <Link
+              href="/"
+              onClick={() => setMenuOpen(false)}
+              className="font-display text-2xl font-light tracking-[0.4em] uppercase"
+            >
+              KYMA
+            </Link>
+            <button onClick={() => setMenuOpen(false)} className="hover:opacity-50">
+              <X size={20} strokeWidth={1.5} />
+            </button>
+          </div>
+
+          {/* Links */}
+          <nav className="flex-1 flex flex-col justify-center px-8 gap-1">
+            {categories.map((cat, i) => (
+              <Link
+                key={cat.slug}
+                href={`/categoria/${cat.slug}`}
+                onClick={() => setMenuOpen(false)}
+                className={`py-4 text-2xl font-display font-light tracking-wide border-b border-gray-100 hover:pl-2 transition-all duration-200 ${
+                  cat.slug === 'sale' ? 'text-red-500' : ''
+                }`}
+                style={{ animationDelay: `${i * 40}ms` }}
+              >
+                {cat.name}
+              </Link>
+            ))}
+          </nav>
+
+          {/* Footer del menú */}
+          <div className="px-8 py-8 flex items-center gap-4">
+            <button
+              onClick={() => { setMenuOpen(false); setSearchOpen(true) }}
+              className="flex items-center gap-2 text-xs tracking-widest uppercase text-gray-500"
+            >
+              <Search size={14} strokeWidth={1.5} />
+              Buscar
+            </button>
+          </div>
         </div>
       )}
-    </header>
 
-    <SearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
+      <SearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
     </>
   )
 }

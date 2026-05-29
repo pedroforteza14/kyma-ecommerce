@@ -42,7 +42,7 @@ export default function ProductForm({ product, categories }: Props) {
       const path = `products/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
 
       const { error } = await supabase.storage
-        .from('images')
+        .from('products')
         .upload(path, file, { upsert: false })
 
       if (!error) {
