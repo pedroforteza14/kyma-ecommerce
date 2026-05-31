@@ -7,14 +7,14 @@ import { useCartStore } from '@/store/cart'
 import SearchModal from './SearchModal'
 
 const categories = [
-  { name: 'Remeras & Tops', slug: 'remeras-tops' },
-  { name: 'Camisas', slug: 'camisas' },
-  { name: 'Sweaters', slug: 'sweaters' },
-  { name: 'Camperas & Blazers', slug: 'camperas-blazers' },
-  { name: 'Denim & Pantalones', slug: 'denim-pantalones' },
-  { name: 'Polleras & Shorts', slug: 'polleras-shorts' },
-  { name: 'Accesorios', slug: 'accesorios' },
-  { name: 'SALE', slug: 'sale' },
+  { name: 'Básicos',           slug: 'basicos-esenciales' },
+  { name: 'Camisas',           slug: 'camisas'            },
+  { name: 'Sweaters',          slug: 'sweaters'           },
+  { name: 'Camperas & Blazers',slug: 'camperas'           },
+  { name: 'Denim',             slug: 'denim-pantalones'   },
+  { name: 'Polleras & Shorts', slug: 'polleras-shorts'    },
+  { name: 'Accesorios',        slug: 'accesorios'         },
+  { name: 'SALE',              slug: 'sale'               },
 ]
 
 export default function Navbar() {
