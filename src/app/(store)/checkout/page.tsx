@@ -1,9 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
+import Link from 'next/link'
 import { useCartStore } from '@/store/cart'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
+import { ShieldCheck } from 'lucide-react'
 
 type FormData = {
   name: string
@@ -12,167 +14,210 @@ type FormData = {
   address: string
 }
 
+const fmt = (n: number) =>
+  new Intl.NumberFormat('es-AR', {
+    style: 'currency',
+    currency: 'ARS',
+    maximumFractionDigits: 0,
+  }).format(n)
+
+const FIELDS: { name: keyof FormData; label: string; type: string; placeholder: string }[] = [
+  { name: 'name',    label: 'Nombre completo',       type: 'text',  placeholder: 'Tu nombre y apellido' },
+  { name: 'email',   label: 'Email',                 type: 'email', placeholder: 'tu@email.com'          },
+  { name: 'phone',   label: 'Teléfono / WhatsApp',   type: 'tel',   placeholder: '+54 9 11 0000-0000'    },
+  { name: 'address', label: 'Dirección de envío',    type: 'text',  placeholder: 'Calle, número, ciudad, provincia' },
+]
+
 export default function CheckoutPage() {
   const { items, total, clearCart } = useCartStore()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
-  const [form, setForm] = useState<FormData>({
-    name: '',
-    email: '',
-    phone: '',
-    address: '',
-  })
+  const [error, setError] = useState('')
+  const [form, setForm] = useState<FormData>({ name: '', email: '', phone: '', address: '' })
 
-  const formatPrice = (price: number) =>
-    new Intl.NumberFormat('es-AR', {
-      style: 'currency',
-      currency: 'ARS',
-      maximumFractionDigits: 0,
-    }).format(price)
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value })
+    setError('')
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (items.length === 0) return
+    if (!items.length) return
     setLoading(true)
+    setError('')
 
     try {
-      const res = await fetch('/api/checkout', {
-        method: 'POST',
+      const res  = await fetch('/api/checkout', {
+        method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, items, total: total() }),
+        body:    JSON.stringify({ ...form, items, total: total() }),
       })
-
       const data = await res.json()
-
       if (data.init_point) {
         clearCart()
         window.location.href = data.init_point
+      } else {
+        setError('Hubo un problema al procesar el pedido. Intentá de nuevo.')
       }
-    } catch (err) {
-      console.error(err)
+    } catch {
+      setError('Hubo un problema al procesar el pedido. Intentá de nuevo.')
     } finally {
       setLoading(false)
     }
   }
 
-  if (items.length === 0) {
+  // Carrito vacío
+  if (!items.length) {
     return (
-      <div className="max-w-lg mx-auto px-4 py-24 text-center">
-        <p className="text-gray-500 mb-4">Tu carrito está vacío.</p>
-        <button
-          onClick={() => router.push('/')}
-          className="text-sm underline underline-offset-4"
+      <div className="max-w-lg mx-auto px-5 py-32 text-center space-y-6">
+        <span className="font-display text-9xl font-light text-gray-100 block">∅</span>
+        <p className="font-display text-2xl font-light text-gray-400 italic">Tu carrito está vacío</p>
+        <Link
+          href="/"
+          className="inline-block text-[11px] tracking-[0.3em] uppercase text-gray-400 hover:text-[#111] transition-colors link-underline"
         >
           Volver al inicio
-        </button>
+        </Link>
       </div>
     )
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
-      <h1 className="text-2xl font-bold tracking-wide mb-8">Finalizar compra</h1>
+    <div>
+      {/* Breadcrumb */}
+      <div className="border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 py-4 flex items-center gap-2 text-[10px] tracking-[0.25em] uppercase text-gray-400">
+          <Link href="/" className="hover:text-[#111] transition-colors">Inicio</Link>
+          <span>/</span>
+          <span className="text-[#111]">Checkout</span>
+        </div>
+      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-        {/* Formulario */}
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <h2 className="text-sm font-semibold tracking-widest uppercase border-b pb-3">
-            Datos de contacto
-          </h2>
+      <div className="max-w-7xl mx-auto px-5 sm:px-8 py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-14 xl:gap-20 items-start">
 
-          {[
-            { name: 'name', label: 'Nombre completo', type: 'text', placeholder: 'Tu nombre' },
-            { name: 'email', label: 'Email', type: 'email', placeholder: 'tu@email.com' },
-            { name: 'phone', label: 'Teléfono / WhatsApp', type: 'tel', placeholder: '+54 9 11...' },
-          ].map((field) => (
-            <div key={field.name}>
-              <label className="block text-xs font-medium text-gray-700 mb-1 tracking-wide">
-                {field.label}
-              </label>
-              <input
-                type={field.type}
-                name={field.name}
-                required
-                placeholder={field.placeholder}
-                value={form[field.name as keyof FormData]}
-                onChange={handleChange}
-                className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-black transition-colors"
-              />
+          {/* ══ FORMULARIO ══ */}
+          <form onSubmit={handleSubmit} className="space-y-10">
+
+            {/* Título */}
+            <div>
+              <p className="text-[9px] tracking-[0.5em] uppercase text-gray-400 mb-2">Paso final</p>
+              <h1 className="font-display text-4xl font-light">Tus datos</h1>
             </div>
-          ))}
 
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1 tracking-wide">
-              Dirección de envío
-            </label>
-            <input
-              type="text"
-              name="address"
-              required
-              placeholder="Calle, número, ciudad, provincia"
-              value={form.address}
-              onChange={handleChange}
-              className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-black transition-colors"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-black text-white py-4 text-sm tracking-widest font-medium hover:bg-gray-900 transition-colors disabled:bg-gray-400 mt-4"
-          >
-            {loading ? 'PROCESANDO...' : 'PAGAR CON MERCADO PAGO'}
-          </button>
-
-          <p className="text-xs text-gray-400 text-center">
-            Serás redirigido a MercadoPago para completar el pago de forma segura.
-          </p>
-        </form>
-
-        {/* Resumen del pedido */}
-        <div className="bg-gray-50 p-6 space-y-6 h-fit">
-          <h2 className="text-sm font-semibold tracking-widest uppercase border-b pb-3">
-            Tu pedido
-          </h2>
-
-          <div className="space-y-4">
-            {items.map((item) => (
-              <div key={item.variant_id} className="flex gap-3">
-                <div className="relative w-16 h-20 bg-gray-100 flex-shrink-0 overflow-hidden rounded-sm">
-                  {item.image && (
-                    <Image src={item.image} alt={item.name} fill className="object-cover" />
-                  )}
+            {/* Campos */}
+            <div className="space-y-6">
+              {FIELDS.map((field) => (
+                <div key={field.name} className="space-y-2">
+                  <label
+                    htmlFor={field.name}
+                    className="block text-[10px] tracking-[0.3em] uppercase text-gray-500"
+                  >
+                    {field.label}
+                  </label>
+                  <input
+                    id={field.name}
+                    type={field.type}
+                    name={field.name}
+                    required
+                    placeholder={field.placeholder}
+                    value={form[field.name]}
+                    onChange={handleChange}
+                    className="w-full border-b border-gray-200 px-0 py-3 text-[14px] bg-transparent focus:outline-none focus:border-[#111] transition-colors placeholder:text-gray-300"
+                  />
                 </div>
-                <div className="flex-1 space-y-1">
-                  <p className="text-sm font-medium leading-tight">{item.name}</p>
-                  <p className="text-xs text-gray-500">
-                    Talle {item.size} · x{item.quantity}
-                  </p>
-                  <p className="text-sm font-semibold">
-                    {formatPrice(item.price * item.quantity)}
-                  </p>
-                </div>
+              ))}
+            </div>
+
+            {/* Error */}
+            {error && (
+              <p className="text-[12px] text-red-500 tracking-wide">{error}</p>
+            )}
+
+            {/* Submit */}
+            <div className="space-y-4">
+              <button
+                type="submit"
+                disabled={loading}
+                className={`w-full h-14 text-[11px] tracking-[0.4em] uppercase flex items-center justify-center gap-3 transition-all duration-300 ${
+                  loading
+                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    : 'bg-[#111] text-white hover:bg-black/80'
+                }`}
+              >
+                {loading ? (
+                  <>
+                    <span className="w-3.5 h-3.5 border border-gray-400 border-t-transparent rounded-full animate-spin" />
+                    Procesando...
+                  </>
+                ) : (
+                  'Pagar con MercadoPago'
+                )}
+              </button>
+
+              <div className="flex items-center justify-center gap-2 text-[11px] text-gray-400">
+                <ShieldCheck size={13} strokeWidth={1.5} />
+                <span>Pago 100% seguro — serás redirigido a MercadoPago</span>
               </div>
-            ))}
-          </div>
+            </div>
+          </form>
 
-          <div className="border-t pt-4 space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Subtotal</span>
-              <span>{formatPrice(total())}</span>
+          {/* ══ RESUMEN DEL PEDIDO ══ */}
+          <div className="lg:sticky lg:top-24 space-y-6">
+            <div>
+              <p className="text-[9px] tracking-[0.5em] uppercase text-gray-400 mb-2">Resumen</p>
+              <h2 className="font-display text-2xl font-light">Tu pedido</h2>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Envío</span>
-              <span className="text-gray-500">A calcular</span>
+
+            {/* Items */}
+            <div className="divide-y divide-gray-100">
+              {items.map((item) => (
+                <div key={item.variant_id} className="flex gap-4 py-4">
+                  <div className="relative w-16 aspect-[3/4] bg-[#f7f6f2] flex-shrink-0 overflow-hidden">
+                    {item.image && (
+                      <Image
+                        src={item.image}
+                        alt={item.name}
+                        fill
+                        className="object-cover"
+                        sizes="64px"
+                      />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13px] leading-snug font-medium truncate">{item.name}</p>
+                    <p className="text-[11px] text-gray-400 mt-1 tracking-wide">
+                      Talle {item.size}
+                      {item.quantity > 1 && ` · x${item.quantity}`}
+                    </p>
+                    <p className="font-display text-base font-light mt-2">
+                      {fmt(item.price * item.quantity)}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
-            <div className="flex justify-between font-bold text-base pt-2 border-t">
-              <span>Total</span>
-              <span>{formatPrice(total())}</span>
+
+            {/* Totales */}
+            <div className="border-t border-gray-100 pt-5 space-y-3">
+              <div className="flex justify-between text-[12px] text-gray-500">
+                <span>Subtotal</span>
+                <span>{fmt(total())}</span>
+              </div>
+              <div className="flex justify-between text-[12px] text-gray-500">
+                <span>Envío</span>
+                <span className="text-gray-400">A calcular</span>
+              </div>
+              <div className="flex justify-between items-baseline border-t border-gray-100 pt-4">
+                <span className="text-[10px] tracking-[0.3em] uppercase text-gray-500">Total</span>
+                <span className="font-display text-2xl font-light">{fmt(total())}</span>
+              </div>
             </div>
+
+            {/* Medios de pago */}
+            <p className="text-[10px] text-gray-400 tracking-wide text-center">
+              Visa · Mastercard · MercadoPago · Transferencia
+            </p>
           </div>
         </div>
       </div>
