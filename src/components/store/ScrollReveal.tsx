@@ -4,50 +4,67 @@ import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 
 /**
- * Global scroll-reveal observer.
- * Añade la clase "in-view" a cualquier elemento con [data-reveal].
- * Acepta [data-delay="200"] para stagger.
- * No produce FOUC: sólo activa las transiciones después de montar.
+ * Scroll-reveal global.
  *
- * Se re-ejecuta en cada cambio de pathname para que el observer
- * capture los elementos del nuevo page (Next.js no desmonta el layout
- * en navegaciones client-side, entonces el useEffect[] original
- * nunca volvería a correr).
+ * Problema que resuelve:
+ * En Next.js App Router, al navegar client-side el pathname cambia
+ * ANTES de que el nuevo contenido RSC llegue al DOM. Un setTimeout fijo
+ * de 50ms no es suficiente. Usamos un MutationObserver que detecta
+ * automáticamente cuando aparecen nuevos [data-reveal] y los observa
+ * sin importar cuánto tarde la respuesta del servidor.
  */
 export default function ScrollReveal() {
   const pathname = usePathname()
 
   useEffect(() => {
-    // Activar transiciones DESPUÉS de montar para evitar parpadeo
+    // Activar transiciones después de montar (evita FOUC en carga inicial)
     requestAnimationFrame(() => {
       document.documentElement.classList.add('js-ready')
     })
 
-    let observer: IntersectionObserver | null = null
+    const observed = new WeakSet<Element>()
 
-    // Pequeño timeout para que Next.js termine de pintar el nuevo DOM
-    const tid = setTimeout(() => {
-      observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (!entry.isIntersecting) return
-            const el    = entry.target as HTMLElement
-            const delay = Number(el.dataset.delay ?? 0)
-            setTimeout(() => el.classList.add('in-view'), delay)
-            observer?.unobserve(el)
-          })
-        },
-        { threshold: 0.08, rootMargin: '0px 0px -40px 0px' }
-      )
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return
+          const el    = entry.target as HTMLElement
+          const delay = Number(el.dataset.delay ?? 0)
+          setTimeout(() => el.classList.add('in-view'), delay)
+          io.unobserve(el)
+        })
+      },
+      { threshold: 0.08, rootMargin: '0px 0px -40px 0px' }
+    )
 
-      document.querySelectorAll('[data-reveal]').forEach((el) => observer!.observe(el))
-    }, 50)
+    // Observa todos los [data-reveal] que todavía no tienen in-view
+    const observeAll = () => {
+      document.querySelectorAll<HTMLElement>('[data-reveal]:not(.in-view)').forEach((el) => {
+        if (observed.has(el)) return
+        observed.add(el)
+        io.observe(el)
+      })
+    }
+
+    // Observar elementos presentes ahora
+    observeAll()
+
+    // Debounce para no llamar observeAll en cada micro-mutación del DOM
+    let debounce: ReturnType<typeof setTimeout>
+    const mo = new MutationObserver(() => {
+      clearTimeout(debounce)
+      debounce = setTimeout(observeAll, 80)
+    })
+
+    // Vigilar inserción de nuevos nodos (contenido RSC que llega después del pathname change)
+    mo.observe(document.body, { childList: true, subtree: true })
 
     return () => {
-      clearTimeout(tid)
-      observer?.disconnect()
+      clearTimeout(debounce)
+      io.disconnect()
+      mo.disconnect()
     }
-  }, [pathname]) // ← re-corre en cada cambio de ruta
+  }, [pathname])
 
   return null
 }
