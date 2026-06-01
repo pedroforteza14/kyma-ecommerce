@@ -23,7 +23,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="es" className={`h-full antialiased ${geist.variable} ${cormorant.variable}`}>
+    <html lang="es" suppressHydrationWarning className={`h-full antialiased ${geist.variable} ${cormorant.variable}`}>
       <body className="font-sans min-h-full flex flex-col bg-white text-[#111]">
         {children}
       </body>

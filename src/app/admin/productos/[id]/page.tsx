@@ -2,9 +2,8 @@ import { createAdminClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import ProductForm from '@/components/admin/ProductForm'
 import StockEditor from '@/components/admin/StockEditor'
-import { deleteProduct } from '@/lib/actions/products'
 import { Product, Category } from '@/types'
-import { Trash2 } from 'lucide-react'
+import DeleteProductButton from '@/components/admin/DeleteProductButton'
 
 type Props = {
   params: Promise<{ id: string }>
@@ -40,25 +39,7 @@ export default async function EditProductPage({ params }: Props) {
         </div>
 
         {/* Eliminar */}
-        <form
-          action={async () => {
-            'use server'
-            await deleteProduct(id)
-          }}
-        >
-          <button
-            type="submit"
-            className="flex items-center gap-2 text-sm text-red-500 border border-red-200 px-4 py-2 hover:bg-red-50 transition-colors rounded"
-            onClick={(e) => {
-              if (!confirm('¿Eliminar este producto? Esta acción no se puede deshacer.')) {
-                e.preventDefault()
-              }
-            }}
-          >
-            <Trash2 size={14} />
-            Eliminar
-          </button>
-        </form>
+        <DeleteProductButton productId={id} />
       </div>
 
       <ProductForm

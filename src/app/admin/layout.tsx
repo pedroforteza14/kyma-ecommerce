@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 
 import Link from 'next/link'
-import { Package, ShoppingBag, LayoutDashboard } from 'lucide-react'
+import { Package, ShoppingBag, LayoutDashboard, BarChart2 } from 'lucide-react'
 import LogoutButton from '@/components/admin/LogoutButton'
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -15,9 +15,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
         <nav className="flex-1 p-4 space-y-1">
           {[
-            { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-            { href: '/admin/productos', label: 'Productos', icon: Package },
-            { href: '/admin/pedidos', label: 'Pedidos', icon: ShoppingBag },
+            { href: '/admin',          label: 'Dashboard', icon: LayoutDashboard },
+            { href: '/admin/balance',  label: 'Balance',   icon: BarChart2       },
+            { href: '/admin/productos',label: 'Productos', icon: Package         },
+            { href: '/admin/pedidos',  label: 'Pedidos',   icon: ShoppingBag     },
           ].map(({ href, label, icon: Icon }) => (
             <Link
               key={href}

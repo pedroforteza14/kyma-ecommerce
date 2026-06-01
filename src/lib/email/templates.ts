@@ -216,3 +216,75 @@ export function adminOrderNotificationHtml(opts: {
 </body>
 </html>`
 }
+
+// ── Email de envío al comprador ───────────────────────────────────────────────
+const CARRIER_URLS: Record<string, (n: string) => string> = {
+  Andreani:           (n) => `https://www.andreani.com/#!/informacionEnvio/${n}`,
+  OCA:                (n) => `https://www.oca.com.ar/seguimiento/${n}`,
+  'Correo Argentino': (n) => `https://www.correoargentino.com.ar/formularios/oidn?idEnvio=${n}`,
+  'Mercado Envíos':   (_) => 'https://www.mercadolibre.com.ar/',
+}
+
+export function shippingNotificationHtml(opts: {
+  customerName: string
+  orderId: string
+  carrier: string
+  trackingNumber: string
+}) {
+  const { customerName, orderId, carrier, trackingNumber } = opts
+  const shortId = orderId.slice(0, 8).toUpperCase()
+  const firstName = customerName.split(' ')[0]
+  const trackingUrl = CARRIER_URLS[carrier]?.(trackingNumber)
+
+  return `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:${BG};${SANS}">
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr><td align="center" style="padding: 40px 20px;">
+    <table width="560" cellpadding="0" cellspacing="0" style="background:#fff;border:1px solid #e8e6e0;max-width:560px;width:100%;">
+      <tr>
+        <td style="padding: 40px 48px 32px; border-bottom: 1px solid #e8e6e0;">
+          <h1 style="${FONT} font-size: 28px; font-weight: 300; color: ${INK}; margin: 0 0 6px;">K Y M A</h1>
+          <p style="margin:0; font-size: 10px; letter-spacing: 0.35em; text-transform: uppercase; color: #888;">Buenos Aires</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding: 40px 48px;">
+          <p style="font-size: 10px; letter-spacing: 0.4em; text-transform: uppercase; color: #888; margin: 0 0 16px;">Tu pedido está en camino</p>
+          <h2 style="${FONT} font-size: 26px; font-weight: 300; color: ${INK}; margin: 0 0 24px; line-height: 1.3;">
+            ¡En camino,<br /><em>${firstName}!</em>
+          </h2>
+          <p style="${SANS} font-size: 14px; color: #555; line-height: 1.7; margin: 0 0 32px;">
+            Tu pedido acaba de ser despachado. Podés seguir el estado de tu envío con los datos de abajo.
+          </p>
+          <div style="background: ${BG}; padding: 20px 24px; margin-bottom: 32px; border-left: 2px solid ${INK};">
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="padding: 6px 0; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: #888; ${SANS}; width: 130px;">Pedido</td>
+                <td style="padding: 6px 0; font-size: 13px; color: ${INK}; ${SANS}">#${shortId}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: #888; ${SANS};">Transportista</td>
+                <td style="padding: 6px 0; font-size: 13px; color: ${INK}; ${SANS}">${carrier}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: #888; ${SANS};">N° de seguimiento</td>
+                <td style="padding: 6px 0; font-size: 14px; color: ${INK}; font-weight: 600; ${SANS}">${trackingNumber}</td>
+              </tr>
+            </table>
+          </div>
+          ${trackingUrl ? `<table cellpadding="0" cellspacing="0" style="margin-bottom: 32px;"><tr><td style="background: ${INK};"><a href="${trackingUrl}" style="display: inline-block; padding: 14px 32px; color: #fff; text-decoration: none; font-size: 11px; letter-spacing: 0.35em; text-transform: uppercase; ${SANS}">Rastrear mi envío →</a></td></tr></table>` : ''}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding: 24px 48px; border-top: 1px solid #e8e6e0; text-align: center;">
+          <p style="${SANS} font-size: 11px; color: #bbb; margin: 0;">¿Dudas? Escribinos a <a href="https://instagram.com/kymaba" style="color: ${INK}; text-decoration: none;">@kymaba</a></p>
+        </td>
+      </tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>`
+}
