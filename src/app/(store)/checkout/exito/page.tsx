@@ -1,14 +1,18 @@
 import Link from 'next/link'
+import PurchaseTracker from '@/components/store/PurchaseTracker'
 
 type Props = {
-  searchParams: Promise<{ order?: string }>
+  searchParams: Promise<{ order?: string; total?: string }>
 }
 
 export default async function SuccessPage({ searchParams }: Props) {
-  const { order } = await searchParams
+  const { order, total } = await searchParams
 
   return (
     <div className="min-h-[70vh] flex items-center justify-center px-5">
+      {/* Tracking de compra (client) */}
+      {order && <PurchaseTracker orderId={order} total={total ? Number(total) : 0} />}
+
       <div className="max-w-md w-full text-center space-y-8 py-20">
 
         {/* Ícono */}
@@ -24,7 +28,8 @@ export default async function SuccessPage({ searchParams }: Props) {
         <div className="space-y-3">
           <p className="text-[9px] tracking-[0.5em] uppercase text-gray-400">Pago confirmado</p>
           <h1 className="font-display text-4xl font-light leading-tight">
-            ¡Gracias por<br />tu compra!
+            ¡Gracias por<br />
+            <em>tu compra!</em>
           </h1>
           <p className="text-[13px] leading-relaxed text-gray-500 max-w-sm mx-auto">
             Tu pago fue procesado con éxito. Te enviamos un email con los detalles del pedido y nos contactamos para coordinar el envío.

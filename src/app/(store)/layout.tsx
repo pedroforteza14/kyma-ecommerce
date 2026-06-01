@@ -3,12 +3,14 @@ import CartDrawer from '@/components/store/CartDrawer'
 import WhatsAppButton from '@/components/store/WhatsAppButton'
 import CustomCursor from '@/components/store/CustomCursor'
 import ScrollReveal from '@/components/store/ScrollReveal'
+import MetaPixel from '@/components/store/MetaPixel'
 import Link from 'next/link'
 
 export default function StoreLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      {/* Cursor y animaciones globales */}
+      {/* Tracking y animaciones globales */}
+      <MetaPixel />
       <CustomCursor />
       <ScrollReveal />
 

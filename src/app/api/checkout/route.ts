@@ -8,13 +8,15 @@ const mp = new MercadoPago({ accessToken: process.env.MP_ACCESS_TOKEN! })
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { name, email, phone, address, items, total } = body as {
+    const { name, email, phone, address, items, total, coupon_code, discount } = body as {
       name: string
       email: string
       phone: string
       address: string
       items: CartItem[]
       total: number
+      coupon_code: string | null
+      discount: number
     }
 
     // Crear el pedido en Supabase (estado pendiente)
@@ -30,9 +32,15 @@ export async function POST(req: NextRequest) {
         items,
         total,
         status: 'pending',
+        ...(coupon_code ? { coupon_code, discount } : {}),
       })
       .select()
       .single()
+
+    // Incrementar contador de uso del cupón
+    if (!error && coupon_code) {
+      await supabase.rpc('increment_coupon_uses', { coupon_code })
+    }
 
     if (error) throw error
 
@@ -56,7 +64,7 @@ export async function POST(req: NextRequest) {
         },
         external_reference: order.id,
         back_urls: {
-          success: `${appUrl}/checkout/exito?order=${order.id}`,
+          success: `${appUrl}/checkout/exito?order=${order.id}&total=${total}`,
           failure: `${appUrl}/checkout/error`,
           pending: `${appUrl}/checkout/pendiente?order=${order.id}`,
         },

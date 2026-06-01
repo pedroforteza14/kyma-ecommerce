@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import MercadoPago, { Payment } from 'mercadopago'
 import { createAdminClient } from '@/lib/supabase/server'
+import { resend } from '@/lib/email/resend'
+import { orderConfirmationHtml, adminOrderNotificationHtml } from '@/lib/email/templates'
+import { CartItem } from '@/types'
 
 const mp = new MercadoPago({ accessToken: process.env.MP_ACCESS_TOKEN! })
 
@@ -34,20 +37,68 @@ export async function POST(req: NextRequest) {
       })
       .eq('id', orderId)
 
-    // Descontar stock si el pago fue aprobado
+    // Si el pago fue aprobado: descontar stock + enviar emails
     if (paymentData.status === 'approved') {
       const { data: order } = await supabase
         .from('orders')
-        .select('items')
+        .select('*')
         .eq('id', orderId)
         .single()
 
-      if (order?.items) {
-        for (const item of order.items as { variant_id: string; quantity: number }[]) {
+      if (order) {
+        const items = order.items as CartItem[]
+
+        // Descontar stock
+        for (const item of items) {
           await supabase.rpc('decrement_stock', {
             variant_id: item.variant_id,
             qty: item.quantity,
           })
+        }
+
+        // Enviar emails si Resend está configurado
+        const resendConfigured =
+          process.env.RESEND_API_KEY &&
+          process.env.RESEND_API_KEY !== 'your_resend_api_key'
+
+        if (resendConfigured) {
+          const emailJobs = [
+            // 1. Confirmación al comprador
+            resend.emails.send({
+              from: 'KYMA <pedidos@kymaba.com.ar>',
+              to: [order.customer_email],
+              subject: `¡Tu pedido fue confirmado! #${orderId.slice(0, 8).toUpperCase()}`,
+              html: orderConfirmationHtml({
+                customerName: order.customer_name,
+                orderId,
+                items,
+                total: order.total,
+                address: order.customer_address,
+              }),
+            }),
+          ]
+
+          // 2. Notificación al admin (si hay email configurado)
+          if (process.env.ADMIN_EMAIL) {
+            emailJobs.push(
+              resend.emails.send({
+                from: 'KYMA Sistema <pedidos@kymaba.com.ar>',
+                to: [process.env.ADMIN_EMAIL],
+                subject: `Nuevo pedido #${orderId.slice(0, 8).toUpperCase()} — ${order.customer_name}`,
+                html: adminOrderNotificationHtml({
+                  orderId,
+                  customerName: order.customer_name,
+                  customerEmail: order.customer_email,
+                  customerPhone: order.customer_phone,
+                  address: order.customer_address,
+                  items,
+                  total: order.total,
+                }),
+              }),
+            )
+          }
+
+          await Promise.all(emailJobs)
         }
       }
     }

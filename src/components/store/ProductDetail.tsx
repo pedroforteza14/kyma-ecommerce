@@ -1,12 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Product, ProductVariant } from '@/types'
 import { useCartStore } from '@/store/cart'
 import { Check, RefreshCw, Truck } from 'lucide-react'
 import SizeGuideModal from './SizeGuideModal'
+import { trackViewContent, trackAddToCart } from './MetaPixel'
 
 type Props = { product: Product }
 
@@ -30,6 +31,11 @@ export default function ProductDetail({ product }: Props) {
     ? Math.round((1 - product.price / product.original_price!) * 100)
     : null
 
+  // Meta Pixel: ViewContent al montar
+  useEffect(() => {
+    trackViewContent({ name: product.name, price: product.price, productId: product.id })
+  }, [product.id, product.name, product.price])
+
   const handleAdd = () => {
     if (!selectedVariant) return
     addItem({
@@ -42,6 +48,8 @@ export default function ProductDetail({ product }: Props) {
       color:      selectedVariant.color,
       quantity:   1,
     })
+    // Meta Pixel: AddToCart
+    trackAddToCart({ name: product.name, price: product.price, variantId: selectedVariant.id })
     setAdded(true)
     setTimeout(() => { setAdded(false); toggleCart() }, 900)
   }
