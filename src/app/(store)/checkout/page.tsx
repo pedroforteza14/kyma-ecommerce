@@ -1,10 +1,14 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useCartStore } from '@/store/cart'
 import { ShieldCheck, Tag, X, Check, Loader2 } from 'lucide-react'
+import dynamic from 'next/dynamic'
+
+const PaymentBrick = dynamic(() => import('@/components/store/PaymentBrick'), { ssr: false })
 
 type FormData = {
   name: string
@@ -18,6 +22,11 @@ type CouponState = {
   discount: number
   description: string
   valid: boolean
+}
+
+type OrderState = {
+  orderId: string
+  preferenceId: string
 }
 
 const fmt = (n: number) =>
@@ -35,10 +44,16 @@ const FIELDS: { name: keyof FormData; label: string; type: string; placeholder: 
 ]
 
 export default function CheckoutPage() {
+  const router = useRouter()
   const { items, total, clearCart } = useCartStore()
+
+  const [step, setStep] = useState<'form' | 'payment'>('form')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [form, setForm] = useState<FormData>({ name: '', email: '', phone: '', address: '' })
+  const [order, setOrder] = useState<OrderState | null>(null)
+  // Keep a snapshot of cart items for the summary on step 2 (after clearCart)
+  const [itemsSnapshot, setItemsSnapshot] = useState(items)
 
   // Cupón
   const [couponInput, setCouponInput] = useState('')
@@ -93,16 +108,16 @@ export default function CheckoutPage() {
     setCouponInput('')
   }
 
-  // ── Submit ────────────────────────────────────────────────────────────────
-  const handleSubmit = async (e: React.FormEvent) => {
+  // ── Paso 1: Crear el pedido y avanzar al pago ─────────────────────────────
+  const handleContinue = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!items.length) return
     setLoading(true)
     setError('')
 
     try {
-      const res = await fetch('/api/checkout', {
-        method:  'POST',
+      const res = await fetch('/api/checkout/create-order', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...form,
@@ -113,12 +128,16 @@ export default function CheckoutPage() {
         }),
       })
       const data = await res.json()
-      if (data.init_point) {
-        clearCart()
-        window.location.href = data.init_point
-      } else {
-        setError('Hubo un problema al procesar el pedido. Intentá de nuevo.')
+
+      if (!res.ok || data.error) {
+        setError(data.error || 'Hubo un problema. Intentá de nuevo.')
+        return
       }
+
+      setItemsSnapshot([...items])
+      setOrder({ orderId: data.orderId, preferenceId: data.preferenceId })
+      clearCart()
+      setStep('payment')
     } catch {
       setError('Hubo un problema al procesar el pedido. Intentá de nuevo.')
     } finally {
@@ -126,8 +145,17 @@ export default function CheckoutPage() {
     }
   }
 
+  // ── Callbacks del Brick ───────────────────────────────────────────────────
+  const handlePaymentSuccess = (orderId: string, payTotal: number) => {
+    router.push(`/checkout/exito?order=${orderId}&total=${payTotal}`)
+  }
+
+  const handlePaymentPending = (orderId: string) => {
+    router.push(`/checkout/pendiente?order=${orderId}`)
+  }
+
   // ── Carrito vacío ─────────────────────────────────────────────────────────
-  if (!items.length) {
+  if (!items.length && step === 'form') {
     return (
       <div className="max-w-lg mx-auto px-5 py-32 text-center space-y-6">
         <span className="font-display text-9xl font-light text-gray-100 block">∅</span>
@@ -149,132 +177,176 @@ export default function CheckoutPage() {
         <div className="max-w-7xl mx-auto px-5 sm:px-8 py-4 flex items-center gap-2 text-[10px] tracking-[0.25em] uppercase text-gray-400">
           <Link href="/" className="hover:text-[#111] transition-colors">Inicio</Link>
           <span>/</span>
-          <span className="text-[#111]">Checkout</span>
+          <span className={step === 'form' ? 'text-[#111]' : 'hover:text-[#111] transition-colors cursor-pointer'}>
+            Tus datos
+          </span>
+          {step === 'payment' && (
+            <>
+              <span>/</span>
+              <span className="text-[#111]">Pago</span>
+            </>
+          )}
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-5 sm:px-8 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-14 xl:gap-20 items-start">
 
-          {/* ══ FORMULARIO ══ */}
-          <form onSubmit={handleSubmit} className="space-y-10">
+          {/* ══ PASO 1: FORMULARIO ══ */}
+          {step === 'form' && (
+            <form onSubmit={handleContinue} className="space-y-10">
+              <div>
+                <p className="text-[9px] tracking-[0.5em] uppercase text-gray-400 mb-2">Paso 1 de 2</p>
+                <h1 className="font-display text-4xl font-light">Tus datos</h1>
+              </div>
 
-            {/* Título */}
-            <div>
-              <p className="text-[9px] tracking-[0.5em] uppercase text-gray-400 mb-2">Paso final</p>
-              <h1 className="font-display text-4xl font-light">Tus datos</h1>
-            </div>
-
-            {/* Campos */}
-            <div className="space-y-6">
-              {FIELDS.map((field) => (
-                <div key={field.name} className="space-y-2">
-                  <label
-                    htmlFor={field.name}
-                    className="block text-[10px] tracking-[0.3em] uppercase text-gray-500"
-                  >
-                    {field.label}
-                  </label>
-                  <input
-                    id={field.name}
-                    type={field.type}
-                    name={field.name}
-                    required
-                    placeholder={field.placeholder}
-                    value={form[field.name]}
-                    onChange={handleChange}
-                    className="w-full border-b border-gray-200 px-0 py-3 text-[14px] bg-transparent focus:outline-none focus:border-[#111] transition-colors placeholder:text-gray-300"
-                  />
-                </div>
-              ))}
-            </div>
-
-            {/* ── Cupón ── */}
-            <div className="space-y-3">
-              <p className="text-[10px] tracking-[0.3em] uppercase text-gray-500">Cupón de descuento</p>
-
-              {coupon ? (
-                <div className="flex items-center justify-between bg-[#f7f6f2] px-4 py-3 border border-[#111]/10">
-                  <div className="flex items-center gap-2">
-                    <Check size={13} strokeWidth={2} className="text-green-600" />
-                    <span className="text-[12px] font-medium">{coupon.code}</span>
-                    {coupon.description && (
-                      <span className="text-[11px] text-gray-500">— {coupon.description}</span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-[13px] text-green-600 font-medium">-{fmt(coupon.discount)}</span>
-                    <button
-                      type="button"
-                      onClick={removeCoupon}
-                      className="text-gray-400 hover:text-[#111] transition-colors"
-                      aria-label="Quitar cupón"
+              <div className="space-y-6">
+                {FIELDS.map((field) => (
+                  <div key={field.name} className="space-y-2">
+                    <label
+                      htmlFor={field.name}
+                      className="block text-[10px] tracking-[0.3em] uppercase text-gray-500"
                     >
-                      <X size={14} />
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <Tag size={13} className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-300" />
+                      {field.label}
+                    </label>
                     <input
-                      type="text"
-                      value={couponInput}
-                      onChange={(e) => { setCouponInput(e.target.value.toUpperCase()); setCouponError('') }}
-                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleApplyCoupon() } }}
-                      placeholder="TU CÓDIGO"
-                      className="w-full border-b border-gray-200 pl-5 py-3 text-[13px] bg-transparent focus:outline-none focus:border-[#111] transition-colors placeholder:text-gray-300 tracking-widest"
+                      id={field.name}
+                      type={field.type}
+                      name={field.name}
+                      required
+                      placeholder={field.placeholder}
+                      value={form[field.name]}
+                      onChange={handleChange}
+                      className="w-full border-b border-gray-200 px-0 py-3 text-[14px] bg-transparent focus:outline-none focus:border-[#111] transition-colors placeholder:text-gray-300"
                     />
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleApplyCoupon}
-                    disabled={couponLoading || !couponInput.trim()}
-                    className="border border-gray-200 px-5 text-[10px] tracking-[0.25em] uppercase text-gray-500 hover:border-[#111] hover:text-[#111] transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
-                  >
-                    {couponLoading ? <Loader2 size={12} className="animate-spin" /> : 'Aplicar'}
-                  </button>
+                ))}
+              </div>
+
+              {/* ── Cupón ── */}
+              <div className="space-y-3">
+                <p className="text-[10px] tracking-[0.3em] uppercase text-gray-500">Cupón de descuento</p>
+
+                {coupon ? (
+                  <div className="flex items-center justify-between bg-[#f7f6f2] px-4 py-3 border border-[#111]/10">
+                    <div className="flex items-center gap-2">
+                      <Check size={13} strokeWidth={2} className="text-green-600" />
+                      <span className="text-[12px] font-medium">{coupon.code}</span>
+                      {coupon.description && (
+                        <span className="text-[11px] text-gray-500">— {coupon.description}</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-[13px] text-green-600 font-medium">-{fmt(coupon.discount)}</span>
+                      <button
+                        type="button"
+                        onClick={removeCoupon}
+                        className="text-gray-400 hover:text-[#111] transition-colors"
+                        aria-label="Quitar cupón"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Tag size={13} className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-300" />
+                      <input
+                        type="text"
+                        value={couponInput}
+                        onChange={(e) => { setCouponInput(e.target.value.toUpperCase()); setCouponError('') }}
+                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleApplyCoupon() } }}
+                        placeholder="TU CÓDIGO"
+                        className="w-full border-b border-gray-200 pl-5 py-3 text-[13px] bg-transparent focus:outline-none focus:border-[#111] transition-colors placeholder:text-gray-300 tracking-widest"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleApplyCoupon}
+                      disabled={couponLoading || !couponInput.trim()}
+                      className="border border-gray-200 px-5 text-[10px] tracking-[0.25em] uppercase text-gray-500 hover:border-[#111] hover:text-[#111] transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
+                    >
+                      {couponLoading ? <Loader2 size={12} className="animate-spin" /> : 'Aplicar'}
+                    </button>
+                  </div>
+                )}
+
+                {couponError && (
+                  <p className="text-[11px] text-red-500 tracking-wide">{couponError}</p>
+                )}
+              </div>
+
+              {error && (
+                <p className="text-[12px] text-red-500 tracking-wide">{error}</p>
+              )}
+
+              <div className="space-y-4">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className={`w-full h-14 text-[11px] tracking-[0.4em] uppercase flex items-center justify-center gap-3 transition-all duration-300 ${
+                    loading
+                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      : 'bg-[#111] text-white hover:bg-black/80'
+                  }`}
+                >
+                  {loading ? (
+                    <>
+                      <span className="w-3.5 h-3.5 border border-gray-400 border-t-transparent rounded-full animate-spin" />
+                      Procesando...
+                    </>
+                  ) : (
+                    'Continuar al pago →'
+                  )}
+                </button>
+
+                <div className="flex items-center justify-center gap-2 text-[11px] text-gray-400">
+                  <ShieldCheck size={13} strokeWidth={1.5} />
+                  <span>Pago 100% seguro con MercadoPago</span>
+                </div>
+              </div>
+            </form>
+          )}
+
+          {/* ══ PASO 2: PAGO ══ */}
+          {step === 'payment' && order && (
+            <div className="space-y-8">
+              <div>
+                <p className="text-[9px] tracking-[0.5em] uppercase text-gray-400 mb-2">Paso 2 de 2</p>
+                <h1 className="font-display text-4xl font-light">Pago seguro</h1>
+                <p className="text-[12px] text-gray-400 mt-2">
+                  Ingresá los datos de tu tarjeta directamente aquí — sin salir del sitio.
+                </p>
+              </div>
+
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded px-4 py-3">
+                  <p className="text-[12px] text-red-600">{error}</p>
                 </div>
               )}
 
-              {couponError && (
-                <p className="text-[11px] text-red-500 tracking-wide">{couponError}</p>
-              )}
-            </div>
+              <PaymentBrick
+                preferenceId={order.preferenceId}
+                amount={finalTotal}
+                orderId={order.orderId}
+                payer={{
+                  firstName: form.name.split(' ')[0],
+                  lastName: form.name.split(' ').slice(1).join(' ') || '',
+                  email: form.email,
+                }}
+                total={finalTotal}
+                onSuccess={handlePaymentSuccess}
+                onPending={handlePaymentPending}
+                onError={(msg) => setError(msg)}
+              />
 
-            {/* Error global */}
-            {error && (
-              <p className="text-[12px] text-red-500 tracking-wide">{error}</p>
-            )}
-
-            {/* Submit */}
-            <div className="space-y-4">
-              <button
-                type="submit"
-                disabled={loading}
-                className={`w-full h-14 text-[11px] tracking-[0.4em] uppercase flex items-center justify-center gap-3 transition-all duration-300 ${
-                  loading
-                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                    : 'bg-[#111] text-white hover:bg-black/80'
-                }`}
-              >
-                {loading ? (
-                  <>
-                    <span className="w-3.5 h-3.5 border border-gray-400 border-t-transparent rounded-full animate-spin" />
-                    Procesando...
-                  </>
-                ) : (
-                  'Pagar con MercadoPago'
-                )}
-              </button>
-
-              <div className="flex items-center justify-center gap-2 text-[11px] text-gray-400">
+              <div className="flex items-center gap-2 text-[11px] text-gray-400">
                 <ShieldCheck size={13} strokeWidth={1.5} />
-                <span>Pago 100% seguro — serás redirigido a MercadoPago</span>
+                <span>Tu información está protegida con encriptación SSL</span>
               </div>
             </div>
-          </form>
+          )}
 
           {/* ══ RESUMEN DEL PEDIDO ══ */}
           <div className="lg:sticky lg:top-24 space-y-6">
@@ -283,9 +355,9 @@ export default function CheckoutPage() {
               <h2 className="font-display text-2xl font-light">Tu pedido</h2>
             </div>
 
-            {/* Items */}
+            {/* Items — use snapshot after cart is cleared */}
             <div className="divide-y divide-gray-100">
-              {items.map((item) => (
+              {(step === 'payment' ? itemsSnapshot : items).map((item) => (
                 <div key={item.variant_id} className="flex gap-4 py-4">
                   <div className="relative w-16 aspect-[3/4] bg-[#f7f6f2] flex-shrink-0 overflow-hidden">
                     {item.image && (
@@ -316,7 +388,7 @@ export default function CheckoutPage() {
             <div className="border-t border-gray-100 pt-5 space-y-3">
               <div className="flex justify-between text-[12px] text-gray-500">
                 <span>Subtotal</span>
-                <span>{fmt(subtotal)}</span>
+                <span>{fmt(subtotal > 0 ? subtotal : finalTotal)}</span>
               </div>
 
               {coupon && (
@@ -337,7 +409,6 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            {/* Medios de pago */}
             <p className="text-[10px] text-gray-400 tracking-wide text-center">
               Visa · Mastercard · MercadoPago · Transferencia
             </p>
