@@ -26,7 +26,7 @@ type CouponState = {
 
 type OrderState = {
   orderId: string
-  preferenceId: string
+  preferenceId: string | null
 }
 
 const fmt = (n: number) =>

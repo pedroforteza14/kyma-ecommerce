@@ -11,7 +11,7 @@ declare global {
 }
 
 type Props = {
-  preferenceId: string
+  preferenceId: string | null
   amount: number
   orderId: string
   payer: {
@@ -59,7 +59,7 @@ export default function PaymentBrick({
           {
             initialization: {
               amount,
-              preferenceId,
+              ...(preferenceId ? { preferenceId } : {}),
               payer: {
                 firstName: payer.firstName,
                 lastName: payer.lastName,

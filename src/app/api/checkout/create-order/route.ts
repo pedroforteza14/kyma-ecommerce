@@ -42,33 +42,41 @@ export async function POST(req: NextRequest) {
 
     if (error) throw error
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL!
-
-    const preference = new Preference(mp)
-    const result = await preference.create({
-      body: {
-        items: items.map((item) => ({
-          id: item.variant_id,
-          title: `${item.name} - Talle ${item.size}`,
-          quantity: item.quantity,
-          unit_price: item.price,
-          currency_id: 'ARS',
-        })),
-        payer: { name, email },
-        external_reference: order.id,
-        back_urls: {
-          success: `${appUrl}/checkout/exito?order=${order.id}&total=${total}`,
-          failure: `${appUrl}/checkout/error`,
-          pending: `${appUrl}/checkout/pendiente?order=${order.id}`,
+    // Crear preferencia de MP (opcional — el Brick funciona igual sin ella)
+    let preferenceId: string | null = null
+    try {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL!
+      const preference = new Preference(mp)
+      const result = await preference.create({
+        body: {
+          items: items.map((item) => ({
+            id: item.variant_id,
+            title: `${item.name} - Talle ${item.size}`,
+            quantity: item.quantity,
+            unit_price: item.price,
+            currency_id: 'ARS',
+          })),
+          payer: { name, email },
+          external_reference: order.id,
+          back_urls: {
+            success: `${appUrl}/checkout/exito?order=${order.id}&total=${total}`,
+            failure: `${appUrl}/checkout/error`,
+            pending: `${appUrl}/checkout/pendiente?order=${order.id}`,
+          },
+          auto_return: 'approved',
+          notification_url: `${appUrl}/api/webhook/mercadopago`,
         },
-        auto_return: 'approved',
-        notification_url: `${appUrl}/api/webhook/mercadopago`,
-      },
-    })
+      })
+      preferenceId = result.id ?? null
+    } catch (mpErr) {
+      // Si MP falla (ej. credenciales no configuradas), igual seguimos
+      // El Brick puede inicializarse solo con el monto
+      console.warn('MP preference creation failed (non-fatal):', mpErr)
+    }
 
     return NextResponse.json({
       orderId: order.id,
-      preferenceId: result.id,
+      preferenceId,
     })
   } catch (err) {
     console.error('Create order error:', err)
