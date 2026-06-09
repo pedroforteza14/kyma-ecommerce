@@ -28,6 +28,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Pedido no encontrado' }, { status: 404 })
     }
 
+    const paymentBody = {
+      transaction_amount: Number(order.total),
+      token: formData.token,
+      payment_method_id: formData.payment_method_id,
+      installments: formData.installments ?? 1,
+      issuer_id: formData.issuer_id ? Number(formData.issuer_id) : undefined,
+      payer: {
+        email: formData.payer?.email ?? order.customer_email,
+        identification: formData.payer?.identification,
+      },
+      external_reference: orderId,
+      notification_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/webhook/mercadopago`,
+      description: `Pedido KYMA #${orderId.slice(0, 8).toUpperCase()}`,
+    }
+    console.log('MP payment body:', JSON.stringify(paymentBody))
+
     const payment = new Payment(mp)
     const result = await payment.create({
       body: {
