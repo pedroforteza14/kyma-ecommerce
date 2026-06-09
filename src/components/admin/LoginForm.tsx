@@ -48,7 +48,7 @@ export default function LoginForm() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-black transition-colors"
+              className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-black transition-colors cursor-text caret-black"
               placeholder="admin@kyma.com.ar"
             />
           </div>
@@ -62,7 +62,7 @@ export default function LoginForm() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-black transition-colors"
+              className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-black transition-colors cursor-text caret-black"
             />
           </div>
 
