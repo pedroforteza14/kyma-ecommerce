@@ -52,8 +52,9 @@ export default function CheckoutPage() {
   const [error, setError] = useState('')
   const [form, setForm] = useState<FormData>({ name: '', email: '', phone: '', address: '' })
   const [order, setOrder] = useState<OrderState | null>(null)
-  // Keep a snapshot of cart items for the summary on step 2 (after clearCart)
+  // Keep a snapshot of cart items and total for the summary on step 2 (after clearCart)
   const [itemsSnapshot, setItemsSnapshot] = useState(items)
+  const [frozenTotal, setFrozenTotal] = useState(0)
 
   // Cupón
   const [couponInput, setCouponInput] = useState('')
@@ -135,6 +136,7 @@ export default function CheckoutPage() {
       }
 
       setItemsSnapshot([...items])
+      setFrozenTotal(finalTotal)
       setOrder({ orderId: data.orderId, preferenceId: data.preferenceId })
       clearCart()
       setStep('payment')
@@ -328,14 +330,14 @@ export default function CheckoutPage() {
 
               <PaymentBrick
                 preferenceId={order.preferenceId}
-                amount={finalTotal}
+                amount={frozenTotal}
                 orderId={order.orderId}
                 payer={{
                   firstName: form.name.split(' ')[0],
                   lastName: form.name.split(' ').slice(1).join(' ') || '',
                   email: form.email,
                 }}
-                total={finalTotal}
+                total={frozenTotal}
                 onSuccess={handlePaymentSuccess}
                 onPending={handlePaymentPending}
                 onError={(msg) => setError(msg)}
@@ -405,7 +407,7 @@ export default function CheckoutPage() {
 
               <div className="flex justify-between items-baseline border-t border-gray-100 pt-4">
                 <span className="text-[10px] tracking-[0.3em] uppercase text-gray-500">Total</span>
-                <span className="font-display text-2xl font-light">{fmt(finalTotal)}</span>
+                <span className="font-display text-2xl font-light">{fmt(step === 'payment' ? frozenTotal : finalTotal)}</span>
               </div>
             </div>
 
