@@ -28,6 +28,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Pedido no encontrado' }, { status: 404 })
     }
 
+    console.log('formData received:', JSON.stringify(formData))
+    console.log('order.total:', order.total)
+
     const paymentBody = {
       transaction_amount: Number(order.total),
       token: formData.token,
