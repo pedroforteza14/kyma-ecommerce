@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
       preferenceId,
     })
   } catch (err) {
-    console.error('Create order error:', err)
+    console.error('Create order error:', JSON.stringify(err, Object.getOwnPropertyNames(err)))
     return NextResponse.json({ error: 'Error creando el pedido' }, { status: 500 })
   }
 }
