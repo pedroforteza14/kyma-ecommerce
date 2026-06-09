@@ -149,8 +149,9 @@ export async function POST(req: NextRequest) {
       paymentId: result.id,
       orderId,
     })
-  } catch (err) {
-    console.error('Payment error:', JSON.stringify(err, Object.getOwnPropertyNames(err)))
-    return NextResponse.json({ error: 'Error procesando el pago' }, { status: 500 })
+  } catch (err: any) {
+    const details = JSON.stringify(err, Object.getOwnPropertyNames(err))
+    console.error('Payment error:', details)
+    return NextResponse.json({ error: 'Error procesando el pago', details }, { status: 500 })
   }
 }
