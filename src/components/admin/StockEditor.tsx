@@ -44,7 +44,7 @@ export default function StockEditor({ variants, productId }: Props) {
                   [variant.id]: Number(e.target.value),
                 }))
               }
-              className="w-24 border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-black transition-colors"
+              className="w-24 border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-black transition-colors cursor-text caret-black"
             />
             <button
               onClick={() => handleSave(variant.id)}

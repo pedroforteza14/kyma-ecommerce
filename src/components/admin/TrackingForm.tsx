@@ -66,7 +66,7 @@ export default function TrackingForm({ orderId, currentCarrier, currentTracking 
           value={tracking}
           onChange={(e) => setTracking(e.target.value)}
           placeholder="ej. AND123456789AR"
-          className="w-full border border-gray-200 rounded px-3 py-2 text-sm focus:outline-none focus:border-black transition-colors font-mono"
+          className="w-full border border-gray-200 rounded px-3 py-2 text-sm focus:outline-none focus:border-black transition-colors font-mono cursor-text caret-black"
         />
       </div>
 

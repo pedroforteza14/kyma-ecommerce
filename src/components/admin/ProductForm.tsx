@@ -80,7 +80,7 @@ export default function ProductForm({ product, categories }: Props) {
           required
           defaultValue={product?.name}
           placeholder="Ej: Camisa lino oversize"
-          className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-black transition-colors"
+          className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-black transition-colors cursor-text caret-black"
         />
       </div>
 
@@ -117,7 +117,7 @@ export default function ProductForm({ product, categories }: Props) {
             min={0}
             defaultValue={product?.price}
             placeholder="25000"
-            className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-black transition-colors"
+            className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-black transition-colors cursor-text caret-black"
           />
         </div>
         <div>
@@ -130,7 +130,7 @@ export default function ProductForm({ product, categories }: Props) {
             min={0}
             defaultValue={product?.original_price ?? ''}
             placeholder="35000"
-            className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-black transition-colors"
+            className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-black transition-colors cursor-text caret-black"
           />
         </div>
       </div>
