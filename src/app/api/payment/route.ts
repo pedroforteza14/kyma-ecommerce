@@ -56,10 +56,7 @@ export async function POST(req: NextRequest) {
         installments: formData.installments ?? 1,
         issuer_id: formData.issuer_id ? Number(formData.issuer_id) : undefined,
         payer: {
-          // En test mode, forzar el email del comprador de prueba
-          email: process.env.MP_ACCESS_TOKEN?.startsWith('TEST-')
-            ? 'test_user_4047784937851987761@testuser.com'
-            : (formData.payer?.email ?? order.customer_email),
+          email: formData.payer?.email ?? order.customer_email,
           identification: formData.payer?.identification,
         },
         external_reference: orderId,
