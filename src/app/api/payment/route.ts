@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
         payer: {
           // En test mode, forzar el email del comprador de prueba
           email: process.env.MP_ACCESS_TOKEN?.startsWith('TEST-')
-            ? 'test_user_3462666960@testuser.com'
+            ? 'test_user_4047784937851987761@testuser.com'
             : (formData.payer?.email ?? order.customer_email),
           identification: formData.payer?.identification,
         },
