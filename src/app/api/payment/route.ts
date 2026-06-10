@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
         installments: formData.installments ?? 1,
         issuer_id: formData.issuer_id ? Number(formData.issuer_id) : undefined,
         payer: {
-          email: formData.payer?.email ?? order.customer_email,
+          email: 'test.comprador.kyma@gmail.com',
           identification: formData.payer?.identification,
         },
         external_reference: orderId,
