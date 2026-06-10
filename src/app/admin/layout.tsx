@@ -6,7 +6,7 @@ import LogoutButton from '@/components/admin/LogoutButton'
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 flex [&_*]:!cursor-auto [&_a]:!cursor-pointer [&_button]:!cursor-pointer">
       {/* Sidebar */}
       <aside className="w-56 bg-white border-r flex flex-col fixed h-full">
         <div className="p-6 border-b">
