@@ -18,26 +18,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ══════════════════════════════════════
-   CURSOR PERSONALIZADO
-══════════════════════════════════════ */
-@media (hover: hover) and (pointer: fine) {
-  *,
-  *::before,
-  *::after {
-    cursor: none !important;
-  }
-  .kyma-cursor-dot,
-  .kyma-cursor-ring {
-    display: block;
-  }
-}
-@media not all and (hover: hover) {
-  .kyma-cursor-dot,
-  .kyma-cursor-ring {
-    display: none;
-  }
-}
 
 /* ══════════════════════════════════════
    SCROLL REVEAL
