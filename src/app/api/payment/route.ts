@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
       if (resendConfigured) {
         const emailJobs = [
           resend.emails.send({
-            from: 'KYMA <pedidos@kymaba.com.ar>',
+            from: 'KYMA <onboarding@resend.dev>',
             to: [order.customer_email],
             subject: `¡Tu pedido fue confirmado! #${orderId.slice(0, 8).toUpperCase()}`,
             html: orderConfirmationHtml({
@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
         if (process.env.ADMIN_EMAIL) {
           emailJobs.push(
             resend.emails.send({
-              from: 'KYMA Sistema <pedidos@kymaba.com.ar>',
+              from: 'KYMA Sistema <onboarding@resend.dev>',
               to: [process.env.ADMIN_EMAIL],
               subject: `Nuevo pedido #${orderId.slice(0, 8).toUpperCase()} — ${order.customer_name}`,
               html: adminOrderNotificationHtml({
