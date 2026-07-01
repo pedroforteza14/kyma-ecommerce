@@ -2,7 +2,7 @@ import { createAdminClient } from '@/lib/supabase/server'
 import { Product } from '@/types'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Plus, Pencil } from 'lucide-react'
+import { Plus, Pencil, ExternalLink } from 'lucide-react'
 
 export default async function ProductsAdminPage() {
   const supabase = await createAdminClient()
@@ -85,13 +85,23 @@ export default async function ProductsAdminPage() {
                   </span>
                 </td>
                 <td className="px-4 py-4">
-                  <Link
-                    href={`/admin/productos/${product.id}`}
-                    className="flex items-center gap-1 text-xs text-blue-600 hover:underline"
-                  >
-                    <Pencil size={12} />
-                    Editar
-                  </Link>
+                  <div className="flex items-center gap-3">
+                    <Link
+                      href={`/admin/productos/${product.id}`}
+                      className="flex items-center gap-1 text-xs text-blue-600 hover:underline"
+                    >
+                      <Pencil size={12} />
+                      Editar
+                    </Link>
+                    <Link
+                      href={`/producto/${product.slug}`}
+                      target="_blank"
+                      className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-700 hover:underline"
+                    >
+                      <ExternalLink size={12} />
+                      Ver en tienda
+                    </Link>
+                  </div>
                 </td>
               </tr>
             ))}

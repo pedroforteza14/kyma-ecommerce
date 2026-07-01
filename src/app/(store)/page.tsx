@@ -8,79 +8,63 @@ export default async function HomePage() {
   const isConfigured = supabaseUrl.startsWith('http')
 
   let featured: Product[] = []
-  let sale: Product[] = []
 
   if (isConfigured) {
     const supabase = await createClient()
-    const [{ data: f }, { data: s }] = await Promise.all([
-      supabase
-        .from('products')
-        .select('*, category:categories(*), variants:product_variants(*)')
-        .eq('is_featured', true)
-        .eq('is_active', true)
-        .limit(8),
-      supabase
-        .from('products')
-        .select('*, category:categories(*), variants:product_variants(*)')
-        .not('original_price', 'is', null)
-        .eq('is_active', true)
-        .limit(4),
-    ])
+    const { data: f } = await supabase
+      .from('products')
+      .select('*, category:categories(*), variants:product_variants(*)')
+      .eq('is_featured', true)
+      .eq('is_active', true)
+      .limit(8)
     featured = (f as Product[]) ?? []
-    sale = (s as Product[]) ?? []
   }
 
   return (
     <div>
-      {/* ══════ HERO ══════ */}
-      <section className="relative h-[93vh] min-h-[580px] bg-[#f7f6f2] flex items-center justify-center overflow-hidden">
 
-        {/* Watermark KYMA */}
-        <span
+      {/* ══════════════════════════════════
+          HERO
+      ══════════════════════════════════ */}
+      <section className="relative h-[94vh] min-h-[600px] flex items-center justify-center overflow-hidden">
+
+        {/* Foto de fondo */}
+        <img
+          src="https://acdn-us.mitiendanube.com/stores/006/445/993/themes/uyuni/2-slide-1780435199759-8036263829-c3e7b37018d3027735c1919bdc3604491780435201-1024-1024.webp"
+          alt=""
           aria-hidden
-          className="absolute select-none font-display font-light text-[20vw] text-[#ece9e3] leading-none pointer-events-none animate-fade-in"
-          style={{ letterSpacing: '-0.02em' }}
-        >
-          KYMA
-        </span>
+          className="absolute inset-0 w-full h-full object-cover object-center"
+          fetchPriority="high"
+        />
 
-        {/* Línea diagonal decorativa */}
-        <div className="absolute top-0 right-[30%] w-px h-full bg-gradient-to-b from-transparent via-[#ddd]/50 to-transparent" />
-
-        {/* Número de colección — esquina superior derecha */}
-        <div className="absolute top-8 right-8 text-right animate-fade-up">
-          <p className="text-[9px] tracking-[0.4em] uppercase text-gray-400">Colección</p>
-          <p className="font-display text-3xl font-light text-gray-300">01</p>
-        </div>
-
-        {/* Categorías rápidas — esquina inferior izquierda */}
-        <div className="absolute bottom-10 left-8 hidden md:flex flex-col gap-2 animate-fade-up">
-          {['Básicos', 'Sweaters', 'Camperas'].map((c, i) => (
-            <span key={c} className="text-[9px] tracking-[0.35em] uppercase text-gray-400" style={{ animationDelay: `${i * 80}ms` }}>
-              {c}
-            </span>
-          ))}
-        </div>
+        {/* Overlay oscuro */}
+        <div className="absolute inset-0 bg-black/40" />
 
         {/* Contenido central */}
-        <div className="relative text-center space-y-8 px-6">
-          <p className="text-[10px] tracking-[0.65em] uppercase text-gray-400 animate-fade-up">
-            2025
-          </p>
-          <h1 className="font-display font-light leading-[1.05] animate-fade-up-delay" style={{ fontSize: 'clamp(3rem, 8vw, 7rem)', letterSpacing: '0.08em' }}>
-            Nueva<br />
-            <em className="not-italic" style={{ fontStyle: 'italic' }}>colección</em>
-          </h1>
-          <div className="animate-fade-up-delay-2 flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
+        <div className="relative text-center px-6 space-y-10">
+          <div className="space-y-4">
+            <p className="text-[8px] tracking-[0.75em] uppercase text-white/60 animate-fade-up">
+              Buenos Aires · Argentina
+            </p>
+            <h1
+              className="font-display font-light leading-[1.02] text-white animate-fade-up-delay"
+              style={{ fontSize: 'clamp(3.2rem, 9vw, 7.5rem)', letterSpacing: '0.07em' }}
+            >
+              Nueva<br />
+              <em>colección</em>
+            </h1>
+          </div>
+
+          <div className="animate-fade-up-delay-2 flex flex-col sm:flex-row items-center justify-center gap-3 pt-1">
             <Link
-              href="/categoria/basicos-esenciales"
-              className="inline-block bg-[#111] text-white px-12 py-4 text-[11px] tracking-[0.35em] uppercase hover:bg-black/75 transition-colors duration-300"
+              href="/categoria/after-hours-collection"
+              className="inline-flex items-center gap-3 bg-white text-[#111] px-11 py-3.5 text-[10px] tracking-[0.4em] uppercase hover:bg-white/90 transition-colors duration-300"
             >
               Ver colección
             </Link>
             <Link
               href="/categoria/sale"
-              className="inline-block border border-[#111]/40 text-[#111] px-12 py-4 text-[11px] tracking-[0.35em] uppercase hover:border-[#111] hover:bg-[#111] hover:text-white transition-all duration-300"
+              className="inline-flex items-center gap-3 border border-white/50 text-white px-11 py-3.5 text-[10px] tracking-[0.4em] uppercase hover:border-white hover:bg-white hover:text-[#111] transition-all duration-300"
             >
               Sale
             </Link>
@@ -88,49 +72,86 @@ export default async function HomePage() {
         </div>
 
         {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 animate-fade-up-delay-2">
-          <div className="w-px h-14 bg-[#111]/20 animate-scroll-pulse" />
-          <span className="text-[8px] tracking-[0.45em] uppercase text-gray-400">Scroll</span>
+        <div className="absolute bottom-9 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2.5 animate-fade-up-delay-3">
+          <div className="w-px h-12 bg-white/30 animate-scroll-pulse" />
+          <span className="text-[7px] tracking-[0.55em] uppercase text-white/50">Scroll</span>
         </div>
       </section>
 
-      {/* ══════ CATEGORÍAS ══════ */}
-      <section className="max-w-7xl mx-auto px-5 sm:px-8 py-20">
-        {/* Header de sección */}
-        <div className="flex items-end justify-between mb-10" data-reveal>
+      {/* ══════════════════════════════════
+          STRIP DE VALORES
+      ══════════════════════════════════ */}
+      <div className="border-y border-[#ece9e3] bg-white overflow-hidden" data-reveal="fade">
+        <div className="flex animate-marquee whitespace-nowrap py-4">
+          {Array(8).fill(null).map((_, i) => (
+            <span key={i} className="text-[9px] tracking-[0.5em] uppercase px-12 text-gray-400 font-light">
+              Envío gratis · Cambios sin cargo · Cuotas sin interés · Calidad premium ·&nbsp;
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* ══════════════════════════════════
+          CATEGORÍAS
+      ══════════════════════════════════ */}
+      <section className="max-w-7xl mx-auto px-5 sm:px-8 py-20 sm:py-28">
+        <div className="flex items-end justify-between mb-10 sm:mb-14" data-reveal>
           <div>
-            <p className="text-[9px] tracking-[0.5em] uppercase text-gray-400 mb-1">Explorar</p>
-            <h2 className="font-display text-4xl font-light">Categorías</h2>
+            <p className="text-[8px] tracking-[0.6em] uppercase text-gray-400 mb-2">Explorar</p>
+            <h2 className="font-display text-4xl sm:text-5xl font-light tracking-wide">Categorías</h2>
           </div>
-          <span className="font-display text-6xl font-light text-gray-100 hidden sm:block select-none">
+          <span className="font-display text-7xl font-light text-[#ece9e3] hidden sm:block select-none leading-none">
             02
           </span>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3">
           {[
-            { name: 'Básicos\nEsenciales',   slug: 'basicos-esenciales', num: '01' },
-            { name: 'Sweaters',              slug: 'sweaters',           num: '02' },
-            { name: 'Camperas\n& Blazers',   slug: 'camperas',           num: '03' },
-            { name: 'SALE',                  slug: 'sale',               num: '04', accent: true },
+            { name: 'After Hours\nCollection', slug: 'after-hours-collection', num: '01', img: '454-e15f74a90f59ebb06d17805022986320' },
+            { name: 'Tops\n& Bodys',           slug: 'top-bodys',              num: '02', img: '46-99a58451ecabe775ee17596104957657'  },
+            { name: 'Remeras',                 slug: 'remeras',                num: '03', img: '245-36efb0a285d388300617706587030915' },
+            { name: 'Camisas\n& Blusas',       slug: 'camisas-blusas',         num: '04', img: '428-51ca91c661c4002c7417805019665068' },
+            { name: 'Sweaters',                slug: 'sweaters',               num: '05', img: '422-b32c7dca32b85ae8f817805020614745' },
+            { name: 'Jackets\n& Blazers',      slug: 'jackets-blazers',        num: '06', img: '414-2bc1fa028a2ca6736a17810179062988' },
+            { name: 'Pantalones',              slug: 'pantalones',             num: '07', img: '332-41fc179214ee1c7f6317563176290037' },
+            { name: 'Faldas\n& Shorts',        slug: 'polleras-shorts',        num: '08', img: '317-46a13e092080569e5c17730717836463' },
+            { name: 'Accesorios',              slug: 'accesorios',             num: '09', img: '442-4de659f5b3ad49dcb017810169630971' },
+            { name: 'SALE',                    slug: 'sale',                   num: '10', img: '469-32727c377e70bc535917805013942218', accent: true },
           ].map((cat, i) => (
-            <div key={cat.slug} data-reveal data-delay={i * 80}>
+            <div key={cat.slug} data-reveal style={{ transitionDelay: `${i * 80}ms` }}>
               <Link
                 href={`/categoria/${cat.slug}`}
-                className="group relative bg-[#f7f6f2] aspect-[4/5] flex flex-col justify-between p-5 overflow-hidden block hover:bg-[#111] transition-colors duration-500"
+                className="group relative aspect-[4/5] flex flex-col justify-between p-5 sm:p-6 overflow-hidden block"
               >
-                <span className={`text-[9px] tracking-[0.4em] font-light transition-colors duration-500 ${cat.accent ? 'text-red-400 group-hover:text-red-300' : 'text-gray-400 group-hover:text-white/40'}`}>
+                {/* Foto de fondo */}
+                <img
+                  src={`https://acdn-us.mitiendanube.com/stores/006/445/993/products/${cat.img}-480-0.webp`}
+                  alt=""
+                  aria-hidden
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  loading="lazy"
+                />
+                {/* Overlay */}
+                <div className={`absolute inset-0 transition-opacity duration-500 ${
+                  cat.accent
+                    ? 'bg-black/50 group-hover:bg-black/40'
+                    : 'bg-black/30 group-hover:bg-black/50'
+                }`} />
+
+                <span className="relative text-[8px] tracking-[0.5em] font-light text-white/50">
                   {cat.num}
                 </span>
-                <div>
-                  <p className={`font-display text-2xl sm:text-3xl font-light leading-tight whitespace-pre-line transition-colors duration-500 mb-3 ${cat.accent ? 'text-red-500 group-hover:text-red-400' : 'group-hover:text-white'}`}>
+                <div className="relative space-y-3">
+                  <p className={`font-display text-2xl sm:text-3xl font-light leading-tight whitespace-pre-line text-white ${
+                    cat.accent ? 'text-red-300' : ''
+                  }`}>
                     {cat.name}
                   </p>
-                  <div className="flex items-center gap-2 overflow-hidden h-4">
-                    <div className="w-0 group-hover:w-4 h-px bg-white transition-all duration-500" />
-                    <p className="text-[9px] tracking-[0.35em] uppercase text-gray-400 group-hover:text-white/70 transition-colors duration-500 -translate-x-2 group-hover:translate-x-0 transition-transform">
+                  <div className="flex items-center gap-2">
+                    <div className="h-px w-4 bg-white/50 transition-all duration-500 group-hover:w-6" />
+                    <span className="text-[8px] tracking-[0.4em] uppercase text-white/60 transition-colors duration-500 group-hover:text-white/90">
                       Ver todo
-                    </p>
+                    </span>
                   </div>
                 </div>
               </Link>
@@ -139,24 +160,26 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ══════ DIVISOR ══════ */}
-      <div className="border-t border-[#f0ede8] mx-5 sm:mx-8" />
-
-      {/* ══════ DESTACADOS ══════ */}
+      {/* ══════════════════════════════════
+          DESTACADOS
+      ══════════════════════════════════ */}
       {featured.length > 0 && (
-        <section className="max-w-7xl mx-auto px-5 sm:px-8 py-20">
-          <div className="flex items-end justify-between mb-12" data-reveal>
+        <section className="max-w-7xl mx-auto px-5 sm:px-8 pb-20 sm:pb-28">
+          <div className="flex items-end justify-between mb-10 sm:mb-14" data-reveal>
             <div>
-              <p className="text-[9px] tracking-[0.5em] uppercase text-gray-400 mb-1">Selección</p>
-              <h2 className="font-display text-4xl font-light">Destacados</h2>
+              <p className="text-[8px] tracking-[0.6em] uppercase text-gray-400 mb-2">Selección</p>
+              <h2 className="font-display text-4xl sm:text-5xl font-light tracking-wide">Destacados</h2>
             </div>
-            <Link href="/categoria/basicos-esenciales" className="text-[11px] tracking-[0.2em] uppercase link-underline pb-0.5 hidden sm:block">
-              Ver todo
+            <Link
+              href="/categoria/top-bodys"
+              className="text-[10px] tracking-[0.25em] uppercase link-underline pb-0.5 hidden sm:block text-gray-500 hover:text-[#111] transition-colors"
+            >
+              Ver todo →
             </Link>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 sm:gap-7">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
             {featured.map((product, i) => (
-              <div key={product.id} data-reveal data-delay={i * 60}>
+              <div key={product.id} data-reveal style={{ transitionDelay: `${Math.min(i * 55, 280)}ms` }}>
                 <ProductCard product={product} />
               </div>
             ))}
@@ -164,59 +187,21 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* ══════ FRANJA MARQUEE ══════ */}
+      {/* ══════════════════════════════════
+          FRANJA CENTRAL
+      ══════════════════════════════════ */}
       <div className="bg-[#111] text-white py-5 overflow-hidden" data-reveal="fade">
         <div className="flex animate-marquee whitespace-nowrap">
           {Array(10).fill(null).map((_, i) => (
-            <span key={i} className="text-[11px] tracking-[0.45em] uppercase px-10 font-light text-white/70">
-              Nueva colección · Envíos a todo el país · Cuotas sin interés ·&nbsp;
+            <span key={i} className="text-[10px] tracking-[0.5em] uppercase px-10 font-light text-white/50">
+              Nueva colección ·&nbsp;
             </span>
           ))}
         </div>
       </div>
 
-      {/* ══════ SALE ══════ */}
-      {sale.length > 0 && (
-        <section className="max-w-7xl mx-auto px-5 sm:px-8 py-20">
-          <div className="flex items-end justify-between mb-12" data-reveal>
-            <div>
-              <p className="text-[9px] tracking-[0.5em] uppercase text-gray-400 mb-1">Ofertas</p>
-              <h2 className="font-display text-4xl font-light text-red-500">Sale</h2>
-            </div>
-            <Link href="/categoria/sale" className="text-[11px] tracking-[0.2em] uppercase link-underline pb-0.5 text-red-500 hidden sm:block">
-              Ver todo
-            </Link>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 sm:gap-7">
-            {sale.map((product, i) => (
-              <div key={product.id} data-reveal data-delay={i * 60}>
-                <ProductCard product={product} />
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
 
-      {/* ══════ CTA FINAL ══════ */}
-      <section className="relative bg-[#f7f6f2] py-32 text-center overflow-hidden">
-        {/* Número decorativo */}
-        <span aria-hidden className="absolute right-8 top-8 font-display text-[10rem] font-light text-[#ede9e3] leading-none select-none pointer-events-none">
-          K
-        </span>
-        <div data-reveal>
-          <p className="text-[9px] tracking-[0.55em] uppercase text-gray-400 mb-5">KYMA</p>
-          <h2 className="font-display text-4xl sm:text-6xl font-light leading-tight mb-10">
-            Moda con<br />
-            <em>identidad propia</em>
-          </h2>
-          <Link
-            href="/categoria/basicos-esenciales"
-            className="inline-block border border-[#111] text-[#111] px-14 py-4 text-[11px] tracking-[0.35em] uppercase hover:bg-[#111] hover:text-white transition-all duration-300"
-          >
-            Explorar todo
-          </Link>
-        </div>
-      </section>
+
     </div>
   )
 }

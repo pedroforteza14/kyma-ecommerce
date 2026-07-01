@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { updateOrderStatus } from '@/lib/actions/orders'
 import { CartItem, Order, OrderStatus } from '@/types'
 import Image from 'next/image'
+import Link from 'next/link'
 import TrackingForm from '@/components/admin/TrackingForm'
 
 type Props = {
@@ -65,9 +66,34 @@ export default async function OrderDetailPage({ params }: Props) {
         <div className="bg-white border rounded-lg p-5 space-y-2">
           <h2 className="text-xs font-semibold text-gray-500 tracking-widest uppercase mb-3">Cliente</h2>
           <p className="font-medium">{order.customer_name}</p>
-          <p className="text-sm text-gray-600">{order.customer_email}</p>
-          <p className="text-sm text-gray-600">{order.customer_phone}</p>
+          <a href={`mailto:${order.customer_email}`} className="text-sm text-blue-600 hover:underline block">
+            {order.customer_email}
+          </a>
+          <a
+            href={`https://wa.me/${order.customer_phone?.replace(/\D/g, '')}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm text-green-600 hover:underline block"
+          >
+            📱 {order.customer_phone}
+          </a>
           <p className="text-sm text-gray-600 pt-2 border-t mt-2">{order.customer_address}</p>
+          <div className="flex gap-2 pt-3">
+            <a
+              href={`https://wa.me/${order.customer_phone?.replace(/\D/g, '')}?text=${encodeURIComponent(`Hola ${order.customer_name.split(' ')[0]}, te escribimos desde KYMA sobre tu pedido #${order.id.slice(0,8).toUpperCase()} 👋`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 text-center text-xs bg-green-500 text-white px-3 py-2 rounded hover:bg-green-600 transition-colors"
+            >
+              WhatsApp
+            </a>
+            <a
+              href={`mailto:${order.customer_email}?subject=Tu pedido KYMA %23${order.id.slice(0,8).toUpperCase()}`}
+              className="flex-1 text-center text-xs border border-gray-300 px-3 py-2 rounded hover:border-black transition-colors"
+            >
+              Email
+            </a>
+          </div>
         </div>
 
         <div className="bg-white border rounded-lg p-5 space-y-2">
@@ -105,7 +131,23 @@ export default async function OrderDetailPage({ params }: Props) {
                 {item.image && <Image src={item.image} alt={item.name} fill className="object-cover" />}
               </div>
               <div className="flex-1">
-                <p className="text-sm font-medium">{item.name}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium">{item.name}</p>
+                  {item.slug && (
+                    <Link
+                      href={`/producto/${item.slug}`}
+                      target="_blank"
+                      className="text-gray-400 hover:text-blue-600 transition-colors"
+                      title="Ver en tienda"
+                    >
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                        <polyline points="15 3 21 3 21 9"/>
+                        <line x1="10" y1="14" x2="21" y2="3"/>
+                      </svg>
+                    </Link>
+                  )}
+                </div>
                 <p className="text-xs text-gray-500">
                   Talle {item.size}{item.color ? ` · ${item.color}` : ''} · x{item.quantity}
                 </p>

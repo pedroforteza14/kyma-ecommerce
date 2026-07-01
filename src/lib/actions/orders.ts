@@ -2,13 +2,44 @@
 
 import { createAdminClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import { OrderStatus } from '@/types'
+import { CartItem, OrderStatus } from '@/types'
 import { resend } from '@/lib/email/resend'
-import { shippingNotificationHtml } from '@/lib/email/templates'
+import { orderConfirmationHtml, shippingNotificationHtml } from '@/lib/email/templates'
 
 export async function updateOrderStatus(id: string, status: OrderStatus) {
   const supabase = await createAdminClient()
+
+  // Traer el pedido antes de actualizar para poder mandar el email
+  const { data: order } = await supabase
+    .from('orders')
+    .select('*')
+    .eq('id', id)
+    .single()
+
   await supabase.from('orders').update({ status }).eq('id', id)
+
+  // Si pasa a "pagado" Y antes NO estaba pagado → email de confirmación (evita duplicados)
+  if (status === 'paid' && order && order.status !== 'paid') {
+    const resendConfigured =
+      process.env.RESEND_API_KEY &&
+      process.env.RESEND_API_KEY !== 'your_resend_api_key'
+
+    if (resendConfigured) {
+      await resend.emails.send({
+        from: process.env.RESEND_FROM_EMAIL ?? 'KYMA <onboarding@resend.dev>',
+        to: [order.customer_email],
+        subject: `¡Tu pedido fue confirmado! #${id.slice(0, 8).toUpperCase()}`,
+        html: orderConfirmationHtml({
+          customerName: order.customer_name,
+          orderId:      id,
+          items:        order.items as CartItem[],
+          total:        order.total,
+          address:      order.customer_address,
+        }),
+      })
+    }
+  }
+
   revalidatePath(`/admin/pedidos/${id}`)
   revalidatePath('/admin/pedidos')
 }
@@ -40,7 +71,7 @@ export async function updateOrderTracking(
 
   if (resendConfigured && order) {
     await resend.emails.send({
-      from: 'KYMA <pedidos@kymaba.com.ar>',
+      from: process.env.RESEND_FROM_EMAIL ?? 'KYMA <onboarding@resend.dev>',
       to: [order.customer_email],
       subject: `Tu pedido está en camino 📦 #${id.slice(0, 8).toUpperCase()}`,
       html: shippingNotificationHtml({

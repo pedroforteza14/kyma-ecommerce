@@ -6,6 +6,20 @@ import ProductCard from '@/components/store/ProductCard'
 import CategoryFilters from '@/components/store/CategoryFilters'
 import { Suspense } from 'react'
 
+const CDN = 'https://acdn-us.mitiendanube.com/stores/006/445/993/products'
+const CATEGORY_PHOTOS: Record<string, string> = {
+  'after-hours-collection': '454-e15f74a90f59ebb06d17805022986320',
+  'top-bodys':              '46-99a58451ecabe775ee17596104957657',
+  'remeras':                '245-36efb0a285d388300617706587030915',
+  'camisas-blusas':         '428-51ca91c661c4002c7417805019665068',
+  'sweaters':               '422-b32c7dca32b85ae8f817805020614745',
+  'jackets-blazers':        '414-2bc1fa028a2ca6736a17810179062988',
+  'pantalones':             '332-41fc179214ee1c7f6317563176290037',
+  'polleras-shorts':        '317-46a13e092080569e5c17730717836463',
+  'accesorios':             '442-4de659f5b3ad49dcb017810169630971',
+  'sale':                   '469-32727c377e70bc535917805013942218',
+}
+
 type Props = {
   params: Promise<{ slug: string }>
   searchParams: Promise<{ orden?: string }>
@@ -61,61 +75,65 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const { data: products } = await query
   const total = products?.length ?? 0
 
+  const photo = CATEGORY_PHOTOS[slug]
+
   return (
     <div>
-      {/* ══════ HEADER EDITORIAL ══════ */}
-      <div className="border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-5 sm:px-8">
+      {/* ══════ BANNER EDITORIAL ══════ */}
+      <div className="relative h-[38vh] min-h-[260px] max-h-[420px] overflow-hidden bg-[#111]">
+        {photo && (
+          <>
+            <img
+              src={`${CDN}/${photo}-1024-1024.webp`}
+              alt={category.name}
+              className="absolute inset-0 w-full h-full object-cover object-top opacity-50"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent" />
+          </>
+        )}
+
+        <div className="absolute inset-0 flex flex-col justify-end max-w-7xl mx-auto px-5 sm:px-8 pb-8">
           {/* Breadcrumb */}
-          <div className="py-4 flex items-center gap-2 text-[10px] tracking-[0.25em] uppercase text-gray-400">
-            <a href="/" className="hover:text-[#111] transition-colors">Inicio</a>
+          <div className="flex items-center gap-2 text-[9px] tracking-[0.35em] uppercase text-white/40 mb-4">
+            <a href="/" className="hover:text-white/70 transition-colors">Inicio</a>
             <span>/</span>
-            <span className={isSale ? 'text-red-500' : 'text-[#111]'}>{category.name}</span>
+            <span className="text-white/60">{category.name}</span>
           </div>
 
-          {/* Título + info */}
-          <div className="pb-10 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-            <div>
-              <h1
-                className={`font-display font-light leading-none ${isSale ? 'text-red-500' : ''}`}
-                style={{ fontSize: 'clamp(3rem, 7vw, 6rem)', letterSpacing: '0.06em' }}
-              >
-                {category.name}
-              </h1>
-              <p className="text-[11px] tracking-[0.25em] text-gray-400 mt-3 uppercase">
-                {total} {total === 1 ? 'producto' : 'productos'}
-              </p>
-            </div>
-
-            {/* Filtros */}
-            <div className="pb-1">
-              <Suspense fallback={null}>
-                <CategoryFilters total={total} />
-              </Suspense>
-            </div>
-          </div>
+          <h1
+            className={`font-light leading-none text-white ${isSale ? 'text-red-400' : ''}`}
+            style={{ fontSize: 'clamp(2.5rem, 6vw, 5rem)', letterSpacing: '0.05em' }}
+          >
+            {category.name}
+          </h1>
+          <p className="text-[10px] tracking-[0.4em] uppercase text-white/40 mt-3">
+            Buenos Aires · Argentina
+          </p>
         </div>
       </div>
 
-      {/* ══════ GRILLA DE PRODUCTOS ══════ */}
-      <div className="max-w-7xl mx-auto px-5 sm:px-8 py-12">
+      {/* ══════ FILTROS ══════ */}
+      <div className="max-w-7xl mx-auto px-5 sm:px-8">
+        <Suspense fallback={null}>
+          <CategoryFilters total={total} />
+        </Suspense>
+      </div>
+
+      {/* ══════ GRILLA ══════ */}
+      <div className="max-w-7xl mx-auto px-5 sm:px-8 py-10">
         {total > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 sm:gap-7">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
             {(products as Product[]).map((product, i) => (
-              <div key={product.id} data-reveal data-delay={Math.min(i * 50, 300)}>
+              <div key={product.id} data-reveal style={{ transitionDelay: `${Math.min(i * 50, 300)}ms` }}>
                 <ProductCard product={product} />
               </div>
             ))}
           </div>
         ) : (
           <div className="text-center py-32">
-            <span className="font-display text-8xl font-light text-gray-100 block mb-6">∅</span>
-            <p className="font-display text-2xl font-light text-gray-400 italic">
-              Sin productos todavía
-            </p>
-            <p className="text-[11px] tracking-[0.2em] uppercase text-gray-300 mt-3">
-              Volvé pronto
-            </p>
+            <span className="text-8xl font-light text-gray-100 block mb-6">∅</span>
+            <p className="text-2xl font-light text-gray-400 italic">Sin productos todavía</p>
+            <p className="text-[11px] tracking-[0.2em] uppercase text-gray-300 mt-3">Volvé pronto</p>
           </div>
         )}
       </div>

@@ -19,17 +19,34 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     .eq('is_active', true)
     .single()
 
-  if (!product) return { title: 'Producto no encontrado | KYMA' }
+  if (!product) return { title: 'Producto no encontrado' }
+
+  const description =
+    product.description ??
+    `Comprá ${product.name} en KYMA. Moda femenina con identidad propia. Envíos a todo el país.`
+
+  const priceFormatted = new Intl.NumberFormat('es-AR', {
+    style: 'currency', currency: 'ARS', maximumFractionDigits: 0,
+  }).format(product.price)
+
+  const image = product.images?.[0]
+    ? { url: product.images[0], width: 800, height: 1067, alt: product.name }
+    : undefined
 
   return {
-    title: `${product.name} | KYMA`,
-    description:
-      product.description ??
-      `Comprá ${product.name} en KYMA. Moda femenina con estilo y personalidad.`,
+    title: product.name,
+    description,
     openGraph: {
-      title: product.name,
-      description: product.description ?? `${product.name} - KYMA`,
-      images: product.images?.[0] ? [{ url: product.images[0] }] : [],
+      type:        'website',
+      title:       `${product.name} — ${priceFormatted}`,
+      description,
+      images:      image ? [image] : [],
+    },
+    twitter: {
+      card:        'summary_large_image',
+      title:       `${product.name} — ${priceFormatted}`,
+      description,
+      images:      image ? [image.url] : [],
     },
   }
 }

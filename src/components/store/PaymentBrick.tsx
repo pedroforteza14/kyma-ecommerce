@@ -21,7 +21,7 @@ type Props = {
   }
   total: number
   onSuccess: (orderId: string, total: number) => void
-  onPending: (orderId: string) => void
+  onPending: (orderId: string, ticketUrl?: string) => void
   onError: (msg: string) => void
 }
 
@@ -42,6 +42,7 @@ export default function PaymentBrick({
     let mounted = true
 
     const initBrick = async () => {
+      if (!mounted) return          // guard para React Strict Mode (doble mount en dev)
       const publicKey = process.env.NEXT_PUBLIC_MP_PUBLIC_KEY
       if (!publicKey) return
 
@@ -51,7 +52,9 @@ export default function PaymentBrick({
 
         if (brickRef.current) {
           await brickRef.current.unmount()
+          brickRef.current = null
         }
+        if (!mounted) return        // re-chequeamos después del await
 
         brickRef.current = await bricksBuilder.create(
           'payment',
@@ -68,11 +71,9 @@ export default function PaymentBrick({
             },
             customization: {
               paymentMethods: {
-                creditCard: 'all',
-                debitCard: 'all',
-                ticket: 'all',
-                bankTransfer: 'all',
-                mercadoPago: 'all',
+                creditCard:  'all',
+                debitCard:   'all',
+                mercadoPago: preferenceId ? 'all' : 'none',
               },
             },
             callbacks: {
@@ -96,7 +97,7 @@ export default function PaymentBrick({
                   if (data.status === 'approved') {
                     onSuccess(orderId, total)
                   } else if (data.status === 'in_process' || data.status === 'pending') {
-                    onPending(orderId)
+                    onPending(orderId, data.ticketUrl ?? undefined)
                   } else {
                     onError('El pago fue rechazado. Verificá los datos de tu tarjeta e intentá de nuevo.')
                   }
@@ -106,6 +107,10 @@ export default function PaymentBrick({
               },
               onError: (err: any) => {
                 console.error('MP Brick error:', err)
+                if (mounted) {
+                  setReady(true) // quitar el spinner
+                  onError('No se pudo cargar el formulario de pago. Verificá tu conexión e intentá de nuevo.')
+                }
               },
             },
           },

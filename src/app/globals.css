@@ -2,7 +2,7 @@
 
 @theme inline {
   --font-sans: var(--font-sans);
-  --font-display: var(--font-display);
+  --font-display: var(--font-sans);
 }
 
 :root {
@@ -11,29 +11,51 @@
   color-scheme: light only;
 }
 
+/* ══════════════════════════════════════
+   BASE
+══════════════════════════════════════ */
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-family: var(--font-sans) !important;
 }
 
+.font-display, [class*="font-display"] {
+  font-family: var(--font-sans) !important;
+}
+
+/* Selección de texto */
+::selection {
+  background: #111111;
+  color: #ffffff;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar        { width: 3px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  { background: #e0ddd8; border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: #c8c4be; }
 
 /* ══════════════════════════════════════
    SCROLL REVEAL
 ══════════════════════════════════════ */
 .js-ready [data-reveal] {
   opacity: 0;
-  transform: translateY(28px);
+  transform: translateY(24px);
   transition:
-    opacity   0.85s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity   0.9s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .js-ready [data-reveal].in-view {
   opacity: 1;
   transform: translateY(0);
 }
-/* Variante: sólo fade (sin movimiento vertical) */
 .js-ready [data-reveal="fade"] {
   transform: none;
 }
@@ -46,46 +68,58 @@ body {
   to   { transform: translateX(-50%); }
 }
 .animate-marquee {
-  animation: marquee 30s linear infinite;
+  animation: marquee 35s linear infinite;
 }
 .animate-marquee:hover {
   animation-play-state: paused;
 }
+.animate-marquee-photos {
+  animation: marquee 40s linear infinite;
+}
+.animate-marquee-photos:hover {
+  animation-play-state: paused;
+}
 
 /* ══════════════════════════════════════
-   HERO ANIMACIONES (first load)
+   HERO ANIMACIONES
 ══════════════════════════════════════ */
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(22px); }
+  from { opacity: 0; transform: translateY(18px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 @keyframes fadeIn {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
-.animate-fade-up          { animation: fadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both; }
-.animate-fade-up-delay    { animation: fadeUp 0.7s 0.12s cubic-bezier(0.16, 1, 0.3, 1) both; }
-.animate-fade-up-delay-2  { animation: fadeUp 0.7s 0.24s cubic-bezier(0.16, 1, 0.3, 1) both; }
-.animate-fade-in          { animation: fadeIn 1.2s 0.1s ease both; }
+@keyframes fadeLeft {
+  from { opacity: 0; transform: translateX(12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.animate-fade-up          { animation: fadeUp  0.75s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-fade-up-delay    { animation: fadeUp  0.75s 0.1s  cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-fade-up-delay-2  { animation: fadeUp  0.75s 0.22s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-fade-up-delay-3  { animation: fadeUp  0.75s 0.34s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-fade-in          { animation: fadeIn  1.4s  0.05s ease both; }
+.animate-fade-left        { animation: fadeLeft 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
 
 /* ══════════════════════════════════════
    MOBILE MENU
 ══════════════════════════════════════ */
 @keyframes slideDown {
-  from { opacity: 0; transform: translateY(-8px); }
+  from { opacity: 0; transform: translateY(-10px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-.animate-slide-down { animation: slideDown 0.22s ease forwards; }
+.animate-slide-down { animation: slideDown 0.25s ease forwards; }
 
 /* ══════════════════════════════════════
    CART DRAWER
 ══════════════════════════════════════ */
 @keyframes slideLeft {
-  from { transform: translateX(100%); opacity: 0; }
-  to   { transform: translateX(0);    opacity: 1; }
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
 }
 .animate-slide-left {
-  animation: slideLeft 0.32s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+  animation: slideLeft 0.38s cubic-bezier(0.32, 0.72, 0, 1) forwards;
 }
 
 /* ══════════════════════════════════════
@@ -102,20 +136,34 @@ body {
   width: 0;
   height: 1px;
   background: currentColor;
-  transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: width 0.38s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .link-underline:hover::after {
   width: 100%;
 }
 
 /* ══════════════════════════════════════
-   SCROLL INDICATOR (hero)
+   SCROLL INDICATOR
 ══════════════════════════════════════ */
 @keyframes scrollPulse {
-  0%, 100% { transform: scaleY(1);   opacity: 0.4; }
-  50%       { transform: scaleY(1.4); opacity: 0.8; }
+  0%, 100% { transform: scaleY(1);   opacity: 0.3; }
+  50%       { transform: scaleY(1.5); opacity: 0.7; }
 }
 .animate-scroll-pulse {
-  animation: scrollPulse 1.8s ease-in-out infinite;
+  animation: scrollPulse 2s ease-in-out infinite;
   transform-origin: top;
+}
+
+/* ══════════════════════════════════════
+   PRODUCT CARD — sizes slide-up
+══════════════════════════════════════ */
+.card-sizes {
+  transform: translateY(6px);
+  opacity: 0;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity   0.3s ease;
+}
+.group:hover .card-sizes {
+  transform: translateY(0);
+  opacity: 1;
 }

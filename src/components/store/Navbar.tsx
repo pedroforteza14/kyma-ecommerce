@@ -7,14 +7,16 @@ import { useCartStore } from '@/store/cart'
 import SearchModal from './SearchModal'
 
 const categories = [
-  { name: 'Básicos',           slug: 'basicos-esenciales' },
-  { name: 'Camisas',           slug: 'camisas'            },
-  { name: 'Sweaters',          slug: 'sweaters'           },
-  { name: 'Camperas & Blazers',slug: 'camperas'           },
-  { name: 'Denim',             slug: 'denim-pantalones'   },
-  { name: 'Polleras & Shorts', slug: 'polleras-shorts'    },
-  { name: 'Accesorios',        slug: 'accesorios'         },
-  { name: 'SALE',              slug: 'sale'               },
+  { name: 'After Hours',      slug: 'after-hours-collection' },
+  { name: 'Tops / Bodys',     slug: 'top-bodys'              },
+  { name: 'Remeras',          slug: 'remeras'                },
+  { name: 'Camisas & Blusas', slug: 'camisas-blusas'         },
+  { name: 'Sweaters',         slug: 'sweaters'               },
+  { name: 'Jackets',          slug: 'jackets-blazers'        },
+  { name: 'Pantalones',       slug: 'pantalones'             },
+  { name: 'Faldas & Shorts',  slug: 'polleras-shorts'        },
+  { name: 'Accesorios',       slug: 'accesorios'             },
+  { name: 'SALE',             slug: 'sale'                   },
 ]
 
 export default function Navbar() {
@@ -40,14 +42,26 @@ export default function Navbar() {
     <>
       {/* ── Announcement bar ── */}
       <div className="bg-[#111] text-white overflow-hidden h-8 flex items-center">
-        <div className="flex animate-marquee whitespace-nowrap text-[10px] tracking-[0.3em] uppercase">
-          {['Envíos a todo el país', 'Devoluciones sin cargo', 'Nueva colección disponible', 'Pagá en cuotas sin interés'].flatMap((t, i) => [
-            <span key={`t${i}`} className="px-10">{t}</span>,
-            <span key={`d${i}`} className="opacity-40">·</span>,
+        <div className="flex animate-marquee whitespace-nowrap text-[8px] tracking-[0.5em] uppercase">
+          {[
+            'Envío gratis en todos los pedidos',
+            'Devoluciones sin cargo',
+            'Nueva colección disponible',
+            'Cuotas sin interés',
+            'Retiro en persona · Buenos Aires',
+          ].flatMap((t, i) => [
+            <span key={`t${i}`} className="px-12 text-white/70">{t}</span>,
+            <span key={`d${i}`} className="text-white/25">·</span>,
           ]).concat(
-            ['Envíos a todo el país', 'Devoluciones sin cargo', 'Nueva colección disponible', 'Pagá en cuotas sin interés'].flatMap((t, i) => [
-              <span key={`t2${i}`} className="px-10">{t}</span>,
-              <span key={`d2${i}`} className="opacity-40">·</span>,
+            [
+              'Envío gratis en todos los pedidos',
+              'Devoluciones sin cargo',
+              'Nueva colección disponible',
+              'Cuotas sin interés',
+              'Retiro en persona · Buenos Aires',
+            ].flatMap((t, i) => [
+              <span key={`t2${i}`} className="px-12 text-white/70">{t}</span>,
+              <span key={`d2${i}`} className="text-white/25">·</span>,
             ])
           )}
         </div>
@@ -58,11 +72,13 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-5 sm:px-8 flex items-center justify-between h-14">
 
           {/* Logo */}
-          <Link
-            href="/"
-            className="font-display text-2xl font-light tracking-[0.4em] uppercase hover:opacity-70 transition-opacity"
-          >
-            KYMA
+          <Link href="/" className="hover:opacity-70 transition-opacity flex-shrink-0">
+            <img
+              src="/logo-transparent.png"
+              alt="KYMA"
+              className="h-9 w-auto"
+              style={{ imageRendering: 'auto' }}
+            />
           </Link>
 
           {/* Nav desktop */}
@@ -119,12 +135,8 @@ export default function Navbar() {
         <div className="fixed inset-0 z-[60] bg-white animate-slide-down flex flex-col">
           {/* Header del menú */}
           <div className="flex items-center justify-between px-5 h-14 border-b border-gray-100">
-            <Link
-              href="/"
-              onClick={() => setMenuOpen(false)}
-              className="font-display text-2xl font-light tracking-[0.4em] uppercase"
-            >
-              KYMA
+            <Link href="/" onClick={() => setMenuOpen(false)}>
+              <img src="/logo-transparent.png" alt="KYMA" className="h-9 w-auto" />
             </Link>
             <button onClick={() => setMenuOpen(false)} className="hover:opacity-50">
               <X size={20} strokeWidth={1.5} />

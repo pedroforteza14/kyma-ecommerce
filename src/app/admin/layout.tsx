@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 
 import Link from 'next/link'
-import { Package, ShoppingBag, LayoutDashboard, BarChart2 } from 'lucide-react'
+import { Package, ShoppingBag, LayoutDashboard, BarChart2, Tag } from 'lucide-react'
 import LogoutButton from '@/components/admin/LogoutButton'
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -15,10 +15,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
         <nav className="flex-1 p-4 space-y-1">
           {[
-            { href: '/admin',          label: 'Dashboard', icon: LayoutDashboard },
+            { href: '/admin',           label: 'Dashboard', icon: LayoutDashboard },
             { href: '/admin/balance',  label: 'Balance',   icon: BarChart2       },
             { href: '/admin/productos',label: 'Productos', icon: Package         },
             { href: '/admin/pedidos',  label: 'Pedidos',   icon: ShoppingBag     },
+            { href: '/admin/cupones',  label: 'Cupones',   icon: Tag             },
           ].map(({ href, label, icon: Icon }) => (
             <Link
               key={href}
@@ -30,9 +31,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </Link>
           ))}
         </nav>
-        <div className="p-4 border-t space-y-3">
-          <Link href="/" className="block text-xs text-gray-400 hover:text-gray-600 transition-colors">
-            ← Ver tienda
+        <div className="p-4 border-t space-y-2">
+          <Link
+            href="/"
+            target="_blank"
+            className="flex items-center gap-2 text-xs text-gray-500 hover:text-black transition-colors px-3 py-2 rounded-lg hover:bg-gray-100"
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+              <polyline points="15 3 21 3 21 9"/>
+              <line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+            Ver tienda
           </Link>
           <LogoutButton />
         </div>

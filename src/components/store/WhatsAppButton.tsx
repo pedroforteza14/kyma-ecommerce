@@ -1,6 +1,6 @@
 import Link from 'next/link'
 
-const WA_NUMBER = '5491100000000' // reemplazar con el número real
+const WA_NUMBER = '5491132587946'
 const WA_MESSAGE = encodeURIComponent('Hola! Tengo una consulta sobre un producto de KYMA 👗')
 
 export default function WhatsAppButton() {

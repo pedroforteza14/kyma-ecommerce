@@ -1,93 +1,71 @@
 import { createAdminClient } from '@/lib/supabase/server'
 import { Order } from '@/types'
+import Link from 'next/link'
+import OrdersTable from './OrdersTable'
 
-const statusColors: Record<string, string> = {
-  pending: 'bg-yellow-100 text-yellow-800',
-  paid: 'bg-green-100 text-green-800',
-  shipped: 'bg-blue-100 text-blue-800',
-  delivered: 'bg-purple-100 text-purple-800',
-  cancelled: 'bg-red-100 text-red-800',
-}
-
-const statusLabels: Record<string, string> = {
-  pending: 'Pendiente',
-  paid: 'Pagado',
-  shipped: 'Enviado',
-  delivered: 'Entregado',
-  cancelled: 'Cancelado',
-}
-
-export default async function OrdersPage() {
+export default async function OrdersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ estado?: string }>
+}) {
+  const { estado } = await searchParams
   const supabase = await createAdminClient()
 
-  const { data: orders } = await supabase
-    .from('orders')
-    .select('*')
-    .order('created_at', { ascending: false })
+  let query = supabase.from('orders').select('*').order('created_at', { ascending: false })
+  if (estado && estado !== 'todos') query = query.eq('status', estado)
 
-  const formatPrice = (price: number) =>
-    new Intl.NumberFormat('es-AR', {
-      style: 'currency',
-      currency: 'ARS',
-      maximumFractionDigits: 0,
-    }).format(price)
+  const { data: orders } = await query
+
+  const { data: counts } = await supabase.from('orders').select('status')
+  const countByStatus = (counts ?? []).reduce<Record<string, number>>((acc, o) => {
+    acc[o.status] = (acc[o.status] ?? 0) + 1
+    return acc
+  }, {})
+  const total = counts?.length ?? 0
+
+  const tabs = [
+    { key: 'todos',     label: 'Todos',     count: total },
+    { key: 'pending',   label: 'Pendientes', count: countByStatus['pending']   ?? 0 },
+    { key: 'paid',      label: 'Pagados',    count: countByStatus['paid']      ?? 0 },
+    { key: 'shipped',   label: 'Enviados',   count: countByStatus['shipped']   ?? 0 },
+    { key: 'delivered', label: 'Entregados', count: countByStatus['delivered'] ?? 0 },
+    { key: 'cancelled', label: 'Cancelados', count: countByStatus['cancelled'] ?? 0 },
+  ]
+
+  const active = estado ?? 'todos'
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-8">Pedidos</h1>
-
-      <div className="bg-white rounded-lg border overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b">
-            <tr>
-              {['#', 'Cliente', 'Total', 'Estado', 'Fecha', 'Acciones'].map((h) => (
-                <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 tracking-wide uppercase">
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {orders?.map((order: Order) => (
-              <tr key={order.id} className="hover:bg-gray-50 transition-colors">
-                <td className="px-4 py-4 text-gray-400 font-mono text-xs">
-                  {order.id.slice(0, 8)}...
-                </td>
-                <td className="px-4 py-4">
-                  <p className="font-medium">{order.customer_name}</p>
-                  <p className="text-xs text-gray-500">{order.customer_email}</p>
-                </td>
-                <td className="px-4 py-4 font-semibold">
-                  {formatPrice(order.total)}
-                </td>
-                <td className="px-4 py-4">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[order.status]}`}>
-                    {statusLabels[order.status]}
-                  </span>
-                </td>
-                <td className="px-4 py-4 text-gray-500">
-                  {new Date(order.created_at).toLocaleDateString('es-AR')}
-                </td>
-                <td className="px-4 py-4">
-                  <a
-                    href={`/admin/pedidos/${order.id}`}
-                    className="text-xs text-blue-600 hover:underline"
-                  >
-                    Ver detalle
-                  </a>
-                </td>
-              </tr>
-            ))}
-            {(!orders || orders.length === 0) && (
-              <tr>
-                <td colSpan={6} className="px-4 py-12 text-center text-gray-400">
-                  No hay pedidos todavía.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">Pedidos</h1>
+        <span className="text-sm text-gray-400">{total} en total</span>
       </div>
+
+      {/* Tabs */}
+      <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-lg w-fit flex-wrap">
+        {tabs.map((tab) => (
+          <Link
+            key={tab.key}
+            href={tab.key === 'todos' ? '/admin/pedidos' : `/admin/pedidos?estado=${tab.key}`}
+            className={`px-3 py-1.5 rounded-md text-sm transition-all flex items-center gap-1.5 ${
+              active === tab.key
+                ? 'bg-white shadow-sm font-medium text-black'
+                : 'text-gray-500 hover:text-black'
+            }`}
+          >
+            {tab.label}
+            {tab.count > 0 && (
+              <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                active === tab.key ? 'bg-black text-white' : 'bg-gray-200 text-gray-600'
+              }`}>
+                {tab.count}
+              </span>
+            )}
+          </Link>
+        ))}
+      </div>
+
+      <OrdersTable orders={(orders ?? []) as Order[]} />
     </div>
   )
 }

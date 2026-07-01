@@ -40,6 +40,14 @@ export async function POST(req: NextRequest) {
       await supabase.rpc('increment_coupon_uses', { coupon_code })
     }
 
+    if (!error) {
+      await supabase
+        .from('abandoned_carts')
+        .update({ recovered: true })
+        .eq('customer_email', email)
+        .eq('recovered', false)
+    }
+
     if (error) throw error
 
     // Crear preferencia de MP (opcional — el Brick funciona igual sin ella)
@@ -63,8 +71,10 @@ export async function POST(req: NextRequest) {
             failure: `${appUrl}/checkout/error`,
             pending: `${appUrl}/checkout/pendiente?order=${order.id}`,
           },
-          auto_return: 'approved',
-          notification_url: `${appUrl}/api/webhook/mercadopago`,
+          // auto_return requiere HTTPS — solo en producción
+          ...(appUrl.includes('localhost') ? {} : { auto_return: 'approved' }),
+          // notification_url requiere URL pública — solo en producción
+          ...(appUrl.includes('localhost') ? {} : { notification_url: `${appUrl}/api/webhook/mercadopago` }),
         },
       })
       preferenceId = result.id ?? null
