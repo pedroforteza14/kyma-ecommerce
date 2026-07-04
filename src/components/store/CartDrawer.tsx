@@ -23,12 +23,12 @@ export default function CartDrawer() {
     <>
       {/* ── Overlay ─────────────────────────────── */}
       <div
-        className="fixed inset-0 bg-black/25 z-50 backdrop-blur-[2px]"
+        className="fixed inset-0 bg-black/25 z-[70] backdrop-blur-[2px]"
         onClick={toggleCart}
       />
 
       {/* ── Drawer ──────────────────────────────── */}
-      <div className="fixed right-0 top-0 h-full w-full max-w-[400px] bg-white z-50 flex flex-col animate-slide-left shadow-2xl">
+      <div className="fixed right-0 top-0 h-full w-full max-w-[400px] bg-white z-[70] flex flex-col animate-slide-left shadow-2xl">
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-6 pb-5 border-b border-gray-100">

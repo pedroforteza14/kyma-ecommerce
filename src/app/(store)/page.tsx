@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { Product } from '@/types'
 import ProductCard from '@/components/store/ProductCard'
 import Link from 'next/link'
+import MobileLanding from '@/components/store/MobileLanding'
 
 export default async function HomePage() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
@@ -22,6 +23,9 @@ export default async function HomePage() {
 
   return (
     <div>
+
+      {/* ── Mobile fullscreen landing (lg:hidden) ── */}
+      <MobileLanding />
 
       {/* ══════════════════════════════════
           HERO
