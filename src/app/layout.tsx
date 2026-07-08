@@ -16,24 +16,24 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://kyma-ecommerce.verce
 
 export const metadata: Metadata = {
   title: {
-    default: 'KYMA | Moda femenina',
+    default: 'KYMA | Buenos Aires',
     template: '%s | KYMA',
   },
-  description: 'Moda femenina con identidad propia. Envíos a todo el país · Cambios sin cargo · Pagá en cuotas.',
+  description: 'Moda femenina con identidad propia. Diseñado y pensado en Buenos Aires.',
   metadataBase: new URL(APP_URL),
   openGraph: {
     type:        'website',
     locale:      'es_AR',
     url:         APP_URL,
     siteName:    'KYMA',
-    title:       'KYMA | Moda femenina',
-    description: 'Moda femenina con identidad propia. Envíos a todo el país · Cambios sin cargo · Pagá en cuotas.',
+    title:       'KYMA | Buenos Aires',
+    description: 'Moda femenina con identidad propia. Diseñado y pensado en Buenos Aires.',
     images: [{ url: '/og-default.jpg', width: 1200, height: 630, alt: 'KYMA Moda femenina' }],
   },
   twitter: {
     card:        'summary_large_image',
-    title:       'KYMA | Moda femenina',
-    description: 'Moda femenina con identidad propia. Envíos a todo el país.',
+    title:       'KYMA | Buenos Aires',
+    description: 'Moda femenina con identidad propia. Diseñado y pensado en Buenos Aires.',
     images:      ['/og-default.jpg'],
   },
   robots: {

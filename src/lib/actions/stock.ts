@@ -9,5 +9,5 @@ export async function updateVariantStock(variantId: string, stock: number, produ
     .from('product_variants')
     .update({ stock: Math.max(0, stock) })
     .eq('id', variantId)
-  revalidatePath(`/admin/productos/${productId}`)
+  revalidatePath('/', 'layout')
 }

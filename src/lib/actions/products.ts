@@ -32,12 +32,11 @@ export async function saveProduct(formData: FormData) {
     .map((s) => s.trim())
     .filter(Boolean)
 
-  // Variantes: vienen como "S,XS,M,L,XL" etc.
-  const sizesRaw = formData.get('sizes') as string
-  const sizes = sizesRaw
-    .split(',')
-    .map((s) => s.trim().toUpperCase())
-    .filter(Boolean)
+  const sizeStocksRaw = formData.get('sizeStocks') as string
+  const sizeStocks: Record<string, number> = sizeStocksRaw ? JSON.parse(sizeStocksRaw) : {}
+
+  const extraCategoryIdsRaw = formData.get('extraCategoryIds') as string
+  const extra_category_ids: string[] = extraCategoryIdsRaw ? JSON.parse(extraCategoryIdsRaw) : []
 
   const productData = {
     name,
@@ -47,49 +46,54 @@ export async function saveProduct(formData: FormData) {
     original_price,
     images,
     category_id,
+    extra_category_ids,
     is_active,
     is_featured,
   }
 
+  let productId = id
+
   if (id) {
-    // Editar existente
     await supabase.from('products').update(productData).eq('id', id)
-    // Reemplazar variantes
     await supabase.from('product_variants').delete().eq('product_id', id)
-    if (sizes.length > 0) {
+    if (Object.keys(sizeStocks).length > 0) {
       await supabase.from('product_variants').insert(
-        sizes.map((size) => ({ product_id: id, size, stock: 10 }))
+        Object.entries(sizeStocks).map(([size, stock]) => ({ product_id: id, size, stock }))
       )
     }
   } else {
-    // Crear nuevo
     const { data: product } = await supabase
       .from('products')
       .insert(productData)
       .select()
       .single()
 
-    if (product && sizes.length > 0) {
+    productId = product?.id ?? null
+
+    if (product && Object.keys(sizeStocks).length > 0) {
       await supabase.from('product_variants').insert(
-        sizes.map((size) => ({ product_id: product.id, size, stock: 10 }))
+        Object.entries(sizeStocks).map(([size, stock]) => ({ product_id: product.id, size, stock }))
       )
     }
   }
 
-  revalidatePath('/admin/productos')
-  revalidatePath('/')
-  redirect('/admin/productos')
+  revalidatePath('/', 'layout')
+  if (productId) {
+    redirect(`/admin/productos/${productId}`)
+  } else {
+    redirect('/admin/productos')
+  }
 }
 
 export async function toggleProductStatus(id: string, is_active: boolean) {
   const supabase = await createAdminClient()
   await supabase.from('products').update({ is_active }).eq('id', id)
-  revalidatePath('/admin/productos')
+  revalidatePath('/', 'layout')
 }
 
 export async function deleteProduct(id: string) {
   const supabase = await createAdminClient()
   await supabase.from('products').delete().eq('id', id)
-  revalidatePath('/admin/productos')
+  revalidatePath('/', 'layout')
   redirect('/admin/productos')
 }

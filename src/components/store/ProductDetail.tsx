@@ -261,18 +261,6 @@ export default function ProductDetail({ product }: Props) {
               </button>
             </div>
 
-            {/* Beneficios */}
-            <div className="border-t border-gray-100 pt-5 space-y-3">
-              {[
-                { icon: Truck,     text: 'Envío gratis a todo el país' },
-                { icon: RefreshCw, text: 'Cambios y devoluciones sin cargo' },
-              ].map(({ icon: Icon, text }) => (
-                <div key={text} className="flex items-center gap-3 text-[11px] tracking-[0.05em] text-gray-500">
-                  <Icon size={13} strokeWidth={1.5} className="flex-shrink-0 text-gray-400" />
-                  {text}
-                </div>
-              ))}
-            </div>
 
             {/* Descripción acordeón */}
             {product.description && (

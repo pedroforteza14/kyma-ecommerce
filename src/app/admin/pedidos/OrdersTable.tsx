@@ -58,7 +58,63 @@ export default function OrdersTable({ orders }: { orders: Order[] }) {
 
   return (
     <div className="bg-white rounded-lg border overflow-hidden">
-      <table className="w-full text-sm">
+
+      {/* ── Mobile: cards ── */}
+      <div className="md:hidden divide-y divide-gray-100">
+        {localOrders.map((order) => {
+          const next = NEXT_STATUS[order.status]
+          const isLoading = loadingId === order.id
+          return (
+            <div key={order.id} className="p-4 space-y-3">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <Link href={`/admin/pedidos/${order.id}`} className="font-medium text-sm hover:underline block truncate">
+                    {order.customer_name}
+                  </Link>
+                  <p className="text-[11px] text-gray-400 font-mono">#{order.id.slice(0, 8).toUpperCase()}</p>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <p className="font-semibold text-sm">{fmt(order.total)}</p>
+                  <p className="text-[11px] text-gray-400">
+                    {new Date(order.created_at).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit' })}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[order.status]}`}>
+                  {STATUS_LABELS[order.status]}
+                </span>
+                <div className="flex items-center gap-2">
+                  {order.customer_phone && (
+                    <a
+                      href={`https://wa.me/${order.customer_phone.replace(/\D/g, '')}`}
+                      target="_blank" rel="noopener noreferrer"
+                      className="text-xs bg-green-50 text-green-700 px-2 py-1 rounded hover:bg-green-100 transition-colors"
+                    >
+                      WA
+                    </a>
+                  )}
+                  {next && (
+                    <button
+                      onClick={() => handleStatusChange(order.id, next.status)}
+                      disabled={isLoading}
+                      className={`text-xs px-3 py-1 rounded transition-colors ${next.color} disabled:opacity-50`}
+                    >
+                      {isLoading ? '...' : next.label}
+                    </button>
+                  )}
+                  <Link href={`/admin/pedidos/${order.id}`} className="text-xs text-blue-600 font-medium hover:underline">
+                    Ver →
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* ── Desktop: tabla ── */}
+      <table className="hidden md:table w-full text-sm">
         <thead className="bg-gray-50 border-b">
           <tr>
             {['#', 'Cliente', 'Total', 'Estado', 'Fecha', 'Acción rápida', ''].map((h) => (
@@ -75,15 +131,11 @@ export default function OrdersTable({ orders }: { orders: Order[] }) {
 
             return (
               <tr key={order.id} className="hover:bg-gray-50 transition-colors">
-
-                {/* ID */}
                 <td className="px-4 py-4 font-mono text-xs text-gray-400">
                   <Link href={`/admin/pedidos/${order.id}`} className="hover:text-black">
                     #{order.id.slice(0, 8).toUpperCase()}
                   </Link>
                 </td>
-
-                {/* Cliente */}
                 <td className="px-4 py-4">
                   <Link href={`/admin/pedidos/${order.id}`} className="font-medium hover:underline block">
                     {order.customer_name}
@@ -95,8 +147,7 @@ export default function OrdersTable({ orders }: { orders: Order[] }) {
                     {order.customer_phone && (
                       <a
                         href={`https://wa.me/${order.customer_phone.replace(/\D/g, '')}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        target="_blank" rel="noopener noreferrer"
                         className="text-xs bg-green-50 text-green-700 px-1.5 py-0.5 rounded hover:bg-green-100 transition-colors flex-shrink-0"
                       >
                         WA
@@ -104,25 +155,15 @@ export default function OrdersTable({ orders }: { orders: Order[] }) {
                     )}
                   </div>
                 </td>
-
-                {/* Total */}
                 <td className="px-4 py-4 font-semibold">{fmt(order.total)}</td>
-
-                {/* Estado */}
                 <td className="px-4 py-4">
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[order.status]}`}>
                     {STATUS_LABELS[order.status]}
                   </span>
                 </td>
-
-                {/* Fecha */}
                 <td className="px-4 py-4 text-gray-500 text-xs">
-                  {new Date(order.created_at).toLocaleDateString('es-AR', {
-                    day: '2-digit', month: '2-digit', year: '2-digit',
-                  })}
+                  {new Date(order.created_at).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit' })}
                 </td>
-
-                {/* Acción rápida */}
                 <td className="px-4 py-4">
                   {next ? (
                     <button
@@ -136,14 +177,11 @@ export default function OrdersTable({ orders }: { orders: Order[] }) {
                     <span className="text-xs text-gray-300">—</span>
                   )}
                 </td>
-
-                {/* Ver detalle */}
                 <td className="px-4 py-4">
                   <Link href={`/admin/pedidos/${order.id}`} className="text-xs text-blue-600 hover:underline font-medium">
                     Ver →
                   </Link>
                 </td>
-
               </tr>
             )
           })}

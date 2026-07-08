@@ -22,6 +22,7 @@ export type Product = {
   original_price: number | null
   images: string[]
   category_id: string
+  extra_category_ids?: string[]
   category?: Category
   variants?: ProductVariant[]
   is_active: boolean

@@ -44,21 +44,17 @@ export default function Navbar() {
       <div className="bg-[#111] text-white overflow-hidden h-8 flex items-center">
         <div className="flex animate-marquee whitespace-nowrap text-[8px] tracking-[0.5em] uppercase">
           {[
-            'Envío gratis en todos los pedidos',
-            'Devoluciones sin cargo',
-            'Nueva colección disponible',
-            'Cuotas sin interés',
-            'Retiro en persona · Buenos Aires',
+            '3 cuotas sin interés',
+            '15% off con transferencia',
+            'Pick up · Villa Crespo',
           ].flatMap((t, i) => [
             <span key={`t${i}`} className="px-12 text-white/70">{t}</span>,
             <span key={`d${i}`} className="text-white/25">·</span>,
           ]).concat(
             [
-              'Envío gratis en todos los pedidos',
-              'Devoluciones sin cargo',
-              'Nueva colección disponible',
-              'Cuotas sin interés',
-              'Retiro en persona · Buenos Aires',
+              '3 cuotas sin interés',
+              '15% off con transferencia',
+              'Pick up · Villa Crespo',
             ].flatMap((t, i) => [
               <span key={`t2${i}`} className="px-12 text-white/70">{t}</span>,
               <span key={`d2${i}`} className="text-white/25">·</span>,

@@ -1,55 +1,7 @@
 export const dynamic = 'force-dynamic'
 
-import Link from 'next/link'
-import { Package, ShoppingBag, LayoutDashboard, BarChart2, Tag } from 'lucide-react'
-import LogoutButton from '@/components/admin/LogoutButton'
+import AdminShell from '@/components/admin/AdminShell'
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="min-h-screen bg-gray-50 flex [&_*]:!cursor-auto [&_a]:!cursor-pointer [&_button]:!cursor-pointer">
-      {/* Sidebar */}
-      <aside className="w-56 bg-white border-r flex flex-col fixed h-full">
-        <div className="p-6 border-b">
-          <p className="text-xs text-gray-500 tracking-widest">ADMIN</p>
-          <p className="font-bold text-xl tracking-widest">KYMA</p>
-        </div>
-        <nav className="flex-1 p-4 space-y-1">
-          {[
-            { href: '/admin',           label: 'Dashboard', icon: LayoutDashboard },
-            { href: '/admin/balance',  label: 'Balance',   icon: BarChart2       },
-            { href: '/admin/productos',label: 'Productos', icon: Package         },
-            { href: '/admin/pedidos',  label: 'Pedidos',   icon: ShoppingBag     },
-            { href: '/admin/cupones',  label: 'Cupones',   icon: Tag             },
-          ].map(({ href, label, icon: Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              className="flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg hover:bg-gray-100 text-gray-700 transition-colors"
-            >
-              <Icon size={16} />
-              {label}
-            </Link>
-          ))}
-        </nav>
-        <div className="p-4 border-t space-y-2">
-          <Link
-            href="/"
-            target="_blank"
-            className="flex items-center gap-2 text-xs text-gray-500 hover:text-black transition-colors px-3 py-2 rounded-lg hover:bg-gray-100"
-          >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-              <polyline points="15 3 21 3 21 9"/>
-              <line x1="10" y1="14" x2="21" y2="3"/>
-            </svg>
-            Ver tienda
-          </Link>
-          <LogoutButton />
-        </div>
-      </aside>
-
-      {/* Contenido */}
-      <main className="ml-56 flex-1 p-8">{children}</main>
-    </div>
-  )
+  return <AdminShell>{children}</AdminShell>
 }

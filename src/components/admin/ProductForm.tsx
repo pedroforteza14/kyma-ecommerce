@@ -12,11 +12,18 @@ type Props = {
   categories: Category[]
 }
 
-const COMMON_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL']
+const SIZE_GROUPS = [
+  { label: 'Talles en letras', sizes: ['ÚNICO', 'XS', 'S', 'M', 'L', 'XL', 'XXL'] },
+  { label: 'Talles en números (pantalones)', sizes: ['34', '36', '38', '40', '42', '44', '46'] },
+]
+const ALL_SIZES = SIZE_GROUPS.flatMap((g) => g.sizes)
 
 export default function ProductForm({ product, categories }: Props) {
-  const [selectedSizes, setSelectedSizes] = useState<string[]>(
-    product?.variants?.map((v) => v.size) ?? []
+  const [sizeStocks, setSizeStocks] = useState<Record<string, number>>(
+    Object.fromEntries(product?.variants?.map((v) => [v.size, v.stock]) ?? [])
+  )
+  const [extraCategoryIds, setExtraCategoryIds] = useState<string[]>(
+    product?.extra_category_ids ?? []
   )
   const [images, setImages] = useState<string[]>(product?.images ?? [])
   const [uploading, setUploading] = useState(false)
@@ -25,8 +32,24 @@ export default function ProductForm({ product, categories }: Props) {
   const supabase = createClient()
 
   const toggleSize = (size: string) => {
-    setSelectedSizes((prev) =>
-      prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size]
+    setSizeStocks((prev) => {
+      if (size in prev) {
+        const next = { ...prev }
+        delete next[size]
+        return next
+      }
+      return { ...prev, [size]: 1 }
+    })
+  }
+
+  const setStock = (size: string, value: number) => {
+    setSizeStocks((prev) => ({ ...prev, [size]: Math.max(0, value) }))
+  }
+
+  const toggleExtraCategory = (id: string, primaryCategoryId: string) => {
+    if (id === primaryCategoryId) return
+    setExtraCategoryIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     )
   }
 
@@ -63,10 +86,13 @@ export default function ProductForm({ product, categories }: Props) {
   const handleSubmit = async (formData: FormData) => {
     setSaving(true)
     formData.set('images', images.join('\n'))
-    formData.set('sizes', selectedSizes.join(','))
+    formData.set('sizeStocks', JSON.stringify(sizeStocks))
+    formData.set('extraCategoryIds', JSON.stringify(extraCategoryIds))
     if (product) formData.set('id', product.id)
     await saveProduct(formData)
   }
+
+  const primaryCategoryId = product?.category_id ?? ''
 
   return (
     <form action={handleSubmit} className="space-y-8 max-w-2xl">
@@ -84,15 +110,19 @@ export default function ProductForm({ product, categories }: Props) {
         />
       </div>
 
-      {/* Categoría */}
+      {/* Categoría principal */}
       <div>
         <label className="block text-xs font-semibold text-gray-700 mb-2 tracking-wide uppercase">
-          Categoría *
+          Categoría principal *
         </label>
         <select
           name="category_id"
           required
-          defaultValue={product?.category_id ?? ''}
+          defaultValue={primaryCategoryId}
+          onChange={(e) => {
+            const newPrimary = e.target.value
+            setExtraCategoryIds((prev) => prev.filter((id) => id !== newPrimary))
+          }}
           className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-black transition-colors bg-white"
         >
           <option value="" disabled>Seleccionar categoría</option>
@@ -102,6 +132,38 @@ export default function ProductForm({ product, categories }: Props) {
             </option>
           ))}
         </select>
+      </div>
+
+      {/* Categorías adicionales */}
+      <div>
+        <label className="block text-xs font-semibold text-gray-700 mb-3 tracking-wide uppercase">
+          Aparece también en
+          <span className="ml-2 text-gray-400 normal-case font-normal">(opcional — el producto aparece en estas categorías además de la principal)</span>
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {categories.map((cat) => {
+            const isPrimary = cat.id === primaryCategoryId
+            const isChecked = extraCategoryIds.includes(cat.id)
+            return (
+              <button
+                key={cat.id}
+                type="button"
+                disabled={isPrimary}
+                onClick={() => toggleExtraCategory(cat.id, primaryCategoryId)}
+                className={`px-3 py-1.5 text-xs border rounded-full transition-all ${
+                  isPrimary
+                    ? 'border-gray-200 text-gray-300 cursor-not-allowed'
+                    : isChecked
+                    ? 'bg-black text-white border-black'
+                    : 'border-gray-300 text-gray-600 hover:border-black'
+                }`}
+              >
+                {cat.name}
+                {isPrimary && ' (principal)'}
+              </button>
+            )
+          })}
+        </div>
       </div>
 
       {/* Precios */}
@@ -149,31 +211,48 @@ export default function ProductForm({ product, categories }: Props) {
         />
       </div>
 
-      {/* Talles */}
+      {/* Talles y stock */}
       <div>
         <label className="block text-xs font-semibold text-gray-700 mb-3 tracking-wide uppercase">
-          Talles disponibles
+          Talles y stock
         </label>
-        <div className="flex flex-wrap gap-2">
-          {COMMON_SIZES.map((size) => (
-            <button
-              key={size}
-              type="button"
-              onClick={() => toggleSize(size)}
-              className={`px-4 py-2 text-sm border transition-all ${
-                selectedSizes.includes(size)
-                  ? 'bg-black text-white border-black'
-                  : 'border-gray-300 hover:border-black'
-              }`}
-            >
-              {size}
-            </button>
-          ))}
-        </div>
-        {selectedSizes.length > 0 && (
-          <p className="mt-2 text-xs text-gray-500">
-            Seleccionados: {selectedSizes.join(', ')} — el stock inicial es 10 por talle
-          </p>
+        {SIZE_GROUPS.map((group) => (
+          <div key={group.label} className="mb-4">
+            <p className="text-[10px] text-gray-400 uppercase tracking-widest mb-2">{group.label}</p>
+            <div className="flex flex-wrap gap-2">
+              {group.sizes.map((size) => (
+                <button
+                  key={size}
+                  type="button"
+                  onClick={() => toggleSize(size)}
+                  className={`px-4 py-2 text-sm border transition-all ${
+                    size in sizeStocks
+                      ? 'bg-black text-white border-black'
+                      : 'border-gray-300 hover:border-black'
+                  }`}
+                >
+                  {size}
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+        {Object.keys(sizeStocks).length > 0 && (
+          <div className="space-y-2 mt-2 border-t pt-3">
+            {ALL_SIZES.filter((s) => s in sizeStocks).map((size) => (
+              <div key={size} className="flex items-center gap-3">
+                <span className="w-16 text-sm font-medium text-gray-700">{size}</span>
+                <input
+                  type="number"
+                  min={0}
+                  value={sizeStocks[size]}
+                  onChange={(e) => setStock(size, parseInt(e.target.value) || 0)}
+                  className="w-24 border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:border-black"
+                />
+                <span className="text-xs text-gray-400">unidades</span>
+              </div>
+            ))}
+          </div>
         )}
       </div>
 
@@ -183,7 +262,6 @@ export default function ProductForm({ product, categories }: Props) {
           Imágenes
         </label>
 
-        {/* Preview */}
         {images.length > 0 && (
           <div className="flex flex-wrap gap-3 mb-4">
             {images.map((url, idx) => (
@@ -206,7 +284,6 @@ export default function ProductForm({ product, categories }: Props) {
           </div>
         )}
 
-        {/* Upload */}
         <input
           ref={fileInputRef}
           type="file"
@@ -222,15 +299,9 @@ export default function ProductForm({ product, categories }: Props) {
           className="flex items-center gap-3 border-2 border-dashed border-gray-300 px-6 py-4 text-sm text-gray-500 hover:border-black hover:text-black transition-colors w-full justify-center"
         >
           {uploading ? (
-            <>
-              <Loader2 size={16} className="animate-spin" />
-              Subiendo...
-            </>
+            <><Loader2 size={16} className="animate-spin" />Subiendo...</>
           ) : (
-            <>
-              <Upload size={16} />
-              Subir imágenes
-            </>
+            <><Upload size={16} />Subir imágenes</>
           )}
         </button>
         <p className="mt-2 text-xs text-gray-400">

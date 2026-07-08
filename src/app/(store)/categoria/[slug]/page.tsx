@@ -64,7 +64,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   if (isSale) {
     query = query.not('original_price', 'is', null)
   } else {
-    query = query.eq('category_id', category.id)
+    query = query.or(`category_id.eq.${category.id},extra_category_ids.cs.{${category.id}}`)
   }
 
   if (orden === 'price_asc')  query = query.order('price', { ascending: true })
@@ -72,8 +72,20 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   else if (orden === 'discount')   query = query.not('original_price', 'is', null).order('created_at', { ascending: false })
   else                             query = query.order('created_at', { ascending: false })
 
-  const { data: products } = await query
-  const total = products?.length ?? 0
+  const { data: rawProducts } = await query
+
+  // Out-of-stock products always go to the end, preserving existing sort within each group
+  const products = rawProducts
+    ? [...rawProducts].sort((a, b) => {
+        const stockA = a.variants?.reduce((s: number, v: { stock: number }) => s + v.stock, 0) ?? 0
+        const stockB = b.variants?.reduce((s: number, v: { stock: number }) => s + v.stock, 0) ?? 0
+        if (stockA === 0 && stockB > 0) return 1
+        if (stockB === 0 && stockA > 0) return -1
+        return 0
+      })
+    : []
+
+  const total = products.length
 
   const photo = CATEGORY_PHOTOS[slug]
 
