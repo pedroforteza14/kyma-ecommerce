@@ -5,7 +5,7 @@ import { ShoppingBag, Menu, X } from 'lucide-react'
 import { useState } from 'react'
 import { useCartStore } from '@/store/cart'
 
-const HERO = 'https://wdzbledtvuoaujrgusti.supabase.co/storage/v1/object/public/products/hero/hero-mobile.webp'
+const HERO = 'https://wdzbledtvuoaujrgusti.supabase.co/storage/v1/object/public/products/hero/hero-mobile.webp?v=2'
 
 const categories = [
   { label: 'After Hours',     href: '/categoria/after-hours-collection', featured: true  },
